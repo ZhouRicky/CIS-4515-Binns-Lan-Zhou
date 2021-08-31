@@ -8,3 +8,5 @@ Simple GPS app
 + sharing locations with other users
 + light & dark mode
 + parking locator (database exists that we can possibly use?)
+
+Sensors used? Accelerometer, Gyroscope, Light
