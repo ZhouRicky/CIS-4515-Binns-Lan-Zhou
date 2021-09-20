@@ -13,3 +13,5 @@ __Simple GPS app__
 + parking locator (database exists that we can possibly use?)
 
 Sensors used? Accelerometer, Gyroscope, Light
+
+Class, ER, Sequence Diagrams
