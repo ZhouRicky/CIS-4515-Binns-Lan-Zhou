@@ -2,7 +2,7 @@
     <string name="app_name">ProjectBLZ</string>
     <string name="login_title_text">Log In</string>
     <string name="login_button">Log in</string>
-    <string name="first_time_here">First time here? </string>
+    <string name="first_time_here">First time here?</string>
     <string name="sign_up_button">Sign up.</string>
     <string name="username_hint">Username</string>
     <string name="password_hint">Password</string>
