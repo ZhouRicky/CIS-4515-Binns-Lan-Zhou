@@ -81,6 +81,6 @@ public class LocationService extends Service {
     private void buildForegroundNotification() {
         //TODO Setting our own buildforegroundNotification
     }
-    
+
 
 }
