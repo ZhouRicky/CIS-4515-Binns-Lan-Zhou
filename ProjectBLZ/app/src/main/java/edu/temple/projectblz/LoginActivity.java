@@ -41,6 +41,7 @@ public class LoginActivity extends AppCompatActivity {
 
         checkPermission();
         viewInitialization();
+//        redirectIfLoggedIn(); // TODO: uncomment when logout button is implemented
 
         // log in button functionality
         loginButton.setOnClickListener(new View.OnClickListener() {
@@ -71,9 +72,18 @@ public class LoginActivity extends AppCompatActivity {
         signUpTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // TODO: open to new activity/fragment to allow user to create an account
+                // TODO: when user returns from SignUpActivity, the application will be changed to redirect to MainActivity when php gets implemented
+                Intent intent = new Intent(view.getContext(), SignUpActivity.class);
+                startActivity(intent);
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        checkPermission();
+//        redirectIfLoggedIn(); // TODO: uncomment when logout button is implemented
     }
 
     // uses dexter library to check for permissions at runtime
@@ -112,8 +122,24 @@ public class LoginActivity extends AppCompatActivity {
         loginButton = findViewById(R.id.loginButton);
     }
 
-    // TODO: log in request; Implement php verifying credential
-    private void login() {
 
+    private void login() {
+        // TODO: log in request
+        //  - Implement php verifying credential
+        //  - Add necessary info to shared preferences (username & session_key if we use it)
+
+        // for now we'll just make it redirect to main activity
+        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        startActivity(intent);
     }
+
+    // redirect user to main activity
+    // TODO: uncomment when logout button is implemented
+    //  - need to add session_key if used
+//    private void redirectIfLoggedIn() {
+//        if(!sharedPrefs.getLoggedInUser().equals(Constant.SHARED_PREFS_DEFAULT_STRING)) {
+//            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+//            startActivity(intent);
+//        }
+//    }
 }

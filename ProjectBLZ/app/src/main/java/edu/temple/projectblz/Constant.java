@@ -12,7 +12,11 @@ public class Constant {
     public static final String IS_LOCATION_PERMISSION_GRANTED = "is_location_permission_granted";
 
     // constants for LoginActivity
-    public static final String INVALID_INPUT = "Please enter username and/or password";
+    public static final String INVALID_INPUT = "Please enter username and/or password.";
     public static final String INCORRECT_INFO = "Username and/or Password incorrect.";
+
+    // constants for SignUpActivity
+    public static final String ENTER_ALL_INFO = "Please enter all information.";
+    public static final String PW_DO_NOT_MATCH = "Passwords do not match.";
 
 }
