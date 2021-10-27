@@ -5,18 +5,16 @@ import android.content.SharedPreferences;
 
 public class SharedPrefs {
 
-    public static final String SHARED_PREFS_NAME = "ProjectBLZ";
-    public static final String SHARED_PREFS_DEFAULT_STRING = "None";
 
-    public static final String USERNAME = "username";
-    public static final String IS_LOCATION_PERMISSION_GRANTED = "is_location_permission_granted";
 
     private Context context;
     private SharedPreferences sharedPrefs;
+    public static final String IS_LOCATION_PERMISSION_GRANTED = "is_location_permission_granted";
+
 
     public SharedPrefs(Context initialContext) {
         context = initialContext;
-        sharedPrefs = context.getSharedPreferences(SHARED_PREFS_NAME, Context.MODE_PRIVATE);
+        sharedPrefs = context.getSharedPreferences(Constant.SHARED_PREFS_NAME, Context.MODE_PRIVATE);
     }
 
     public void clearAllUserSettings() {
@@ -30,16 +28,16 @@ public class SharedPrefs {
     // ================================================================================
     public void setLoggedInUser(String username) {
         SharedPreferences.Editor editor = sharedPrefs.edit();
-        editor.putString(USERNAME, username);
+        editor.putString(Constant.USERNAME, username);
         editor.apply();
     }
 
     public String getLoggedInUser() {
-        return sharedPrefs.getString(USERNAME, SHARED_PREFS_DEFAULT_STRING);
+        return sharedPrefs.getString(Constant.USERNAME, Constant.SHARED_PREFS_DEFAULT_STRING);
     }
 
     protected void clearLoggedInUser() {
-        setLoggedInUser(SHARED_PREFS_DEFAULT_STRING);
+        setLoggedInUser(Constant.SHARED_PREFS_DEFAULT_STRING);
     }
 
     // ================================================================================
