@@ -1,28 +1,18 @@
 package edu.temple.projectblz;
 
-
 import android.Manifest;
 import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.IBinder;
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationCompat;
-
-import java.io.Serializable;
-
-
 
 public class LocationService extends Service {
     //Initialization of the location service based off TA's version
@@ -55,7 +45,7 @@ public class LocationService extends Service {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
                     10, 1, listener);
             //TODO Initializing the distance based of 1 meter and 10 ms but would need to change if needed
-            Log.d(Constant.Log_LocationUpdateInitialize, "The foreground location service has sucessfully started: Location Update initialization is sucessful");
+            Log.d(Constant.LOG_LOCATION, "The foreground location service has successfully started: Location Update Initialization is successful");
         }
 
         return super.onStartCommand(intent, flags, startId);
@@ -70,7 +60,7 @@ public class LocationService extends Service {
 
     @Override
     public void onDestroy() {
-        Log.i(Constant.LOG_LocationUpdateEnded, "Location Service is onDestroy and the Location Service is eliminated");
+        Log.i(Constant.LOG_LOCATION, "Location Service is onDestroy and the Location Service is eliminated");
         locationManager.removeUpdates(listener);
         //Use Manager to remove the listener;
     }

@@ -5,12 +5,8 @@ import android.content.SharedPreferences;
 
 public class SharedPrefs {
 
-
-
     private Context context;
     private SharedPreferences sharedPrefs;
-    public static final String IS_LOCATION_PERMISSION_GRANTED = "is_location_permission_granted";
-
 
     public SharedPrefs(Context initialContext) {
         context = initialContext;
@@ -18,7 +14,7 @@ public class SharedPrefs {
     }
 
     public void clearAllUserSettings() {
-        //TODO: empty for now, but add clear methods here
+        //TODO: add clear methods here
         clearLoggedInUser();
         clearAccessLocationPermissionGranted();
     }
@@ -45,13 +41,13 @@ public class SharedPrefs {
     // ================================================================================
     public void setAccessLocationPermissionGranted(Boolean isPermissionGranted) {
         SharedPreferences.Editor editor = sharedPrefs.edit();
-        editor.putBoolean(IS_LOCATION_PERMISSION_GRANTED, isPermissionGranted);
+        editor.putBoolean(Constant.IS_LOCATION_PERMISSION_GRANTED, isPermissionGranted);
         editor.apply();
     }
 
 
     public Boolean getAccessLocationPermissionGranted() {
-        return sharedPrefs.getBoolean(IS_LOCATION_PERMISSION_GRANTED, false);
+        return sharedPrefs.getBoolean(Constant.IS_LOCATION_PERMISSION_GRANTED, false);
     }
 
 

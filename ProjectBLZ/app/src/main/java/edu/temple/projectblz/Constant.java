@@ -2,18 +2,21 @@ package edu.temple.projectblz;
 
 public class Constant {
 
-    //Constant for LocationService
-    public static final String Log_LocationUpdateInitialize = "The Location Update initialized";
-    public static final String LOG_LocationUpdateEnded = "The Location Service Ended";
+    // constants for LocationService
+    public static final String LOG_LOCATION = "Location";
 
-
-    //Constant for SharedPrefs
+    // constants for SharedPrefs
     public static final String SHARED_PREFS_NAME = "ProjectBLZ";
     public static final String SHARED_PREFS_DEFAULT_STRING = "None";
     public static final String USERNAME = "username";
+    public static final String IS_LOCATION_PERMISSION_GRANTED = "is_location_permission_granted";
 
-    //Constant for LoginActivity
-    public static final String InvalidInput = "Invalid Input";
-    public static final String InvalidInputMessage = null; //TODO Might use for an alertdialog
+    // constants for LoginActivity
+    public static final String INVALID_INPUT = "Please enter username and/or password.";
+    public static final String INCORRECT_INFO = "Username and/or Password incorrect.";
+
+    // constants for SignUpActivity
+    public static final String ENTER_ALL_INFO = "Please enter all information.";
+    public static final String PW_DO_NOT_MATCH = "Passwords do not match.";
 
 }
