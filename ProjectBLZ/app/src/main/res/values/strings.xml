@@ -12,4 +12,5 @@
     <string name="confirm_password_hint">Re-enter Password</string>
     <string name="create_account_button">Create account</string>
     <string name="cancel">Cancel</string>
+    <string name="email_hint">Email</string>
 </resources>

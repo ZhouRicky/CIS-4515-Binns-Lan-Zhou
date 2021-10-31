@@ -2,6 +2,9 @@ package edu.temple.projectblz;
 
 public class Constant {
 
+    // constants URL
+    public static final String URL = "";//TODO: some url
+
     // constants for LocationService
     public static final String LOG_LOCATION = "Location";
 
