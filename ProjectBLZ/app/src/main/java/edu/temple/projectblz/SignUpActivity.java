@@ -100,16 +100,16 @@ public class SignUpActivity extends AppCompatActivity {
         final String URL = "http://172.20.10.8/register.php";
         StringRequest stringRequest = new StringRequest(Request.Method.POST, URL,
                 response -> {
+                   // Log.d("TAG", "Response: " + response);
                     try {
                         JSONObject jsonObject = new JSONObject(response);
                         String result = jsonObject.getString("status");
                         if(result.equals("success")){
-                            SharedPreferences.Editor editor = (SharedPreferences.Editor) sharedPrefs;
-                            editor.putString(Constant.USERNAME, username );
-                            editor.apply();
+                            sharedPrefs.setLoggedInUser(username);
                             Log.d("TAG", "resultKey " + result);
                             Toast.makeText(this, result, Toast.LENGTH_LONG).show();
-                           // startActivity(new Intent(this, LoginActivity.class));
+                            startActivity(new Intent(this, LoginActivity.class));
+                            finish();
                         }
                         Toast toast =  Toast.makeText(this, result, Toast.LENGTH_LONG);
                         toast.show();
@@ -126,16 +126,19 @@ public class SignUpActivity extends AppCompatActivity {
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
                 Map<String, String> params = new HashMap<>();
-                params.put("firstName", firstName);
-                params.put("lastName", lastName);
-                params.put("email   ", email);
+                params.put("firstname", firstName);
+                params.put("lastname", lastName);
+                params.put("email", email);
                 params.put("username", username);
                 params.put("password", password);
+                for (Map.Entry<String, String> entry : params.entrySet()) {
+                    System.out.println(entry.getKey() + "/" + entry.getValue());
+                }
                 return params;
             }
         };
         RequestHandler.getInstance(this).addToRequestQueue(stringRequest);
-        sharedPrefs.setLoggedInUser(username);
-        finish();
+        //
+       //
     }
 }

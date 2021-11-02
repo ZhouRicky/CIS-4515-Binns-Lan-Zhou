@@ -145,12 +145,9 @@ public class LoginActivity extends AppCompatActivity {
                         JSONObject jsonObject = new JSONObject(response);
                         String result = jsonObject.getString("status");
                         if(result.equals("success")){
-                            SharedPreferences.Editor editor = (SharedPreferences.Editor) sharedPrefs;
-                            editor.putString(Constant.USERNAME, username );
-                            editor.apply();
-                            Log.d("TAG", "resultKey " + result);
-                            Toast.makeText(this, result, Toast.LENGTH_LONG).show();
-                             startActivity(new Intent(this, MainActivity.class));
+                            sharedPrefs.setLoggedInUser(username);
+                            startActivity(new Intent(this, MainActivity.class));
+                            finish();
                         }
                         Toast toast =  Toast.makeText(this, result, Toast.LENGTH_LONG);
                         toast.show();
@@ -173,12 +170,6 @@ public class LoginActivity extends AppCompatActivity {
             }
         };
         RequestHandler.getInstance(this).addToRequestQueue(stringRequest);
-        sharedPrefs.setLoggedInUser(username);
-        finish();
-
-        // for now we'll just make it redirect to main activity
-        //Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-        //startActivity(intent);
     }
 
     // redirect user to main activity
