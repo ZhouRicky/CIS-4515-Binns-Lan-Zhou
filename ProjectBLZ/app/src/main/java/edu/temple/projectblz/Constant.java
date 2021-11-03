@@ -8,6 +8,10 @@ public class Constant {
     // constants for LocationService
     public static final String LOG_LOCATION = "Location";
 
+    //location coordinates
+    public static final String LATITUDE = "Lat";
+    public static final String LONGITUDE = "Lon";
+
     // constants for SharedPrefs
     public static final String SHARED_PREFS_NAME = "ProjectBLZ";
     public static final String SHARED_PREFS_DEFAULT_STRING = "None";

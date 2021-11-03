@@ -6,13 +6,19 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Binder;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 public class LocationService extends Service {
     //Initialization of the location service based off TA's version
@@ -22,19 +28,57 @@ public class LocationService extends Service {
     private LocationManager locationManager;
     private LocationListener listener;
     private Notification notification;
+    private final IBinder myBinder = new MyLocalBinder();
+    Intent intent;
 
     @Override
     public void onCreate() {
         super.onCreate();
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        listener = location -> {
+        listener = new LocationListener() {
+            @Override
+            public void onLocationChanged(@NonNull Location location) {
+                if (location != null){
+                    intent = new Intent("driverMood");
+                    try{
 
-            //TODO Updating our features for our own listener
+                        intent.putExtra(Constant.LATITUDE, location.getLatitude());
+                        intent.putExtra(Constant.LONGITUDE, location.getLongitude());
 
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Log.d("Print", String.valueOf(e));
+                    }
+                }
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+
+            }
+
+            @Override
+            public void onProviderEnabled(@NonNull String provider) {
+
+            }
+
+            @Override
+            public void onProviderDisabled(@NonNull String provider) {
+
+            }
         };
 
         buildForegroundNotification();
+        LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(this);
+        localBroadcastManager.sendBroadcast(intent);
+    }
+
+    /**this class is to return the service*/
+    public class MyLocalBinder extends Binder {
+        LocationService getService(){
+            return LocationService.this;
+        }
     }
 
     @Override
@@ -54,8 +98,8 @@ public class LocationService extends Service {
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
-        //TODO implements onBind
+        return myBinder;
+
     }
 
     @Override
@@ -69,7 +113,13 @@ public class LocationService extends Service {
      * Construct a notification to the user to let them know what we're doing with this service
      */
     private void buildForegroundNotification() {
-        //TODO Setting our own buildforegroundNotification
+        notification = (new NotificationCompat.Builder(this, "driver"))
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setChannelId("driver")
+                .setContentTitle("Driving started")
+                .setContentText("You have just started location services")
+                .build();
+        startForeground(FOREGROUND_SERVICE_ID, notification);
     }
 
 

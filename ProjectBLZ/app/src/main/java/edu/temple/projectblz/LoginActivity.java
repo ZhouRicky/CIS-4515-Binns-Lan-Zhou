@@ -138,11 +138,13 @@ public class LoginActivity extends AppCompatActivity {
         // TODO: log in request
         //  - Implement php verifying credential
         //  - Add necessary info to shared preferences (username & session_key if we use it)
-        final String URL = "http://172.20.10.8/login.php";
+        final String URL = "http://10.109.0.138/login.php";
         StringRequest stringRequest = new StringRequest(Request.Method.POST, URL,
                 response -> {
+                    Log.d("TAG", "Response: " + response);
                     try {
                         JSONObject jsonObject = new JSONObject(response);
+
                         String result = jsonObject.getString("status");
                         if(result.equals("success")){
                             sharedPrefs.setLoggedInUser(username);
