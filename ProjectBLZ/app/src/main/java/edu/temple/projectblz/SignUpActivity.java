@@ -97,7 +97,7 @@ public class SignUpActivity extends AppCompatActivity {
         //  - Implement php
         //  - Add necessary info to shared preferences (username & session_key if we use it)
 
-        final String URL = "http://172.20.10.8/register.php";
+        final String URL = "http://192.168.1.78/register.php";//"https://cis-linux2.temple.edu/~tul58076/register.php";
         StringRequest stringRequest = new StringRequest(Request.Method.POST, URL,
                 response -> {
                    // Log.d("TAG", "Response: " + response);

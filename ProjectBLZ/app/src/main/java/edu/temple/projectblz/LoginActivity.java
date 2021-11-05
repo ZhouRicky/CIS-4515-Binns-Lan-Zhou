@@ -1,10 +1,15 @@
 package edu.temple.projectblz;
 
 import android.Manifest;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
@@ -138,10 +143,10 @@ public class LoginActivity extends AppCompatActivity {
         // TODO: log in request
         //  - Implement php verifying credential
         //  - Add necessary info to shared preferences (username & session_key if we use it)
-        final String URL = "http://10.109.0.138/login.php";
+        final String URL = "http://192.168.1.78/login.php";//"https://cis-linux2.temple.edu/~tul58076/login.php";
         StringRequest stringRequest = new StringRequest(Request.Method.POST, URL,
                 response -> {
-                    Log.d("TAG", "Response: " + response);
+                   // Log.d("TAG", "Response: " + response);
                     try {
                         JSONObject jsonObject = new JSONObject(response);
 

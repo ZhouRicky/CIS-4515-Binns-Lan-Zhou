@@ -29,7 +29,7 @@ public class LocationService extends Service {
     private LocationListener listener;
     private Notification notification;
     private final IBinder myBinder = new MyLocalBinder();
-    Intent intent;
+    Context context;
 
     @Override
     public void onCreate() {
@@ -40,16 +40,20 @@ public class LocationService extends Service {
             @Override
             public void onLocationChanged(@NonNull Location location) {
                 if (location != null){
-                    intent = new Intent("driverMood");
-                    try{
 
+                    try{
+                        Intent intent = new Intent("driverMood");
                         intent.putExtra(Constant.LATITUDE, location.getLatitude());
                         intent.putExtra(Constant.LONGITUDE, location.getLongitude());
+                        Log.d("tag3", "Longitude " + location.getLongitude());
+                        LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(context);
+                        localBroadcastManager.sendBroadcast(intent);
 
                     } catch (Exception e) {
                         e.printStackTrace();
                         Log.d("Print", String.valueOf(e));
                     }
+
                 }
             }
 
@@ -67,11 +71,11 @@ public class LocationService extends Service {
             public void onProviderDisabled(@NonNull String provider) {
 
             }
+
         };
 
         buildForegroundNotification();
-        LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(this);
-        localBroadcastManager.sendBroadcast(intent);
+
     }
 
     /**this class is to return the service*/
