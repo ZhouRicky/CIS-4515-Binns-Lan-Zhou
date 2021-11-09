@@ -1,25 +1,41 @@
 package edu.temple.projectblz;
 
 import android.Manifest;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.toolbox.StringRequest;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -127,10 +143,40 @@ public class LoginActivity extends AppCompatActivity {
         // TODO: log in request
         //  - Implement php verifying credential
         //  - Add necessary info to shared preferences (username & session_key if we use it)
+        final String URL = "http://192.168.1.78/login.php";//"https://cis-linux2.temple.edu/~tul58076/login.php";
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, URL,
+                response -> {
+                   // Log.d("TAG", "Response: " + response);
+                    try {
+                        JSONObject jsonObject = new JSONObject(response);
 
-        // for now we'll just make it redirect to main activity
-        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-        startActivity(intent);
+                        String result = jsonObject.getString("status");
+                        if(result.equals("success")){
+                            sharedPrefs.setLoggedInUser(username);
+                            startActivity(new Intent(this, MainActivity.class));
+                            finish();
+                        }
+                        Toast toast =  Toast.makeText(this, result, Toast.LENGTH_LONG);
+                        toast.show();
+                        Log.d("TAG", "resultKey1 " + result);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Toast.makeText(this, "Error, Please try again " + e.toString(), Toast.LENGTH_LONG).show();
+                    }
+                },
+                error -> {
+                    Toast.makeText(this, "Error, Please try again" + error.toString(), Toast.LENGTH_LONG).show();
+                }) {
+            @Nullable
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("username", username);
+                params.put("password", password);
+                return params;
+            }
+        };
+        RequestHandler.getInstance(this).addToRequestQueue(stringRequest);
     }
 
     // redirect user to main activity
