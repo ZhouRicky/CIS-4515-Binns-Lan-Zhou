@@ -15,7 +15,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -31,7 +34,7 @@ public class SignUpActivity extends AppCompatActivity {
     EditText firstNameEditText, lastNameEditText, usernameEditText, passwordEditText, confirmPasswordEditText, emailEditText;
     Button createAccountButton;
 
-    String firstName, lastName, username, password, confirmPassword, email;
+    String firstName, lastName, username, password, confirmPassword, email, sessionKey;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -47,8 +50,9 @@ public class SignUpActivity extends AppCompatActivity {
             public void onClick(View view) {
                 statusTextView.setText("");
 
-                if(firstNameEditText.getText() != null && lastNameEditText.getText() != null && usernameEditText.getText() != null
-                        && passwordEditText.getText() != null && confirmPasswordEditText.getText() != null) {
+                if(firstNameEditText.getText() != null && lastNameEditText.getText() != null &&
+                        emailEditText.getText() != null && usernameEditText.getText() != null &&
+                        passwordEditText.getText() != null && confirmPasswordEditText.getText() != null) {
                     firstName = firstNameEditText.getText().toString();
                     lastName = lastNameEditText.getText().toString();
                     email = emailEditText.getText().toString();
@@ -56,7 +60,8 @@ public class SignUpActivity extends AppCompatActivity {
                     password = passwordEditText.getText().toString();
                     confirmPassword = confirmPasswordEditText.getText().toString();
 
-                    if(firstName.isEmpty() || lastName.isEmpty() || username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+                    if(firstName.isEmpty() || lastName.isEmpty() || email.isEmpty() ||
+                            username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
                         statusTextView.setText(Constant.ENTER_ALL_INFO);
                     } else {
                         if(password.equals(confirmPassword)) {
@@ -94,33 +99,43 @@ public class SignUpActivity extends AppCompatActivity {
 
     private void createAccount() {
         // TODO: create account request
-        //  - Implement php
+        //  - Implement php (need a set url)
         //  - Add necessary info to shared preferences (username & session_key if we use it)
 
         final String URL = "http://192.168.1.78/register.php";//"https://cis-linux2.temple.edu/~tul58076/register.php";
         StringRequest stringRequest = new StringRequest(Request.Method.POST, URL,
                 response -> {
-                   // Log.d("TAG", "Response: " + response);
+
+//                    Log.d("JSON", String.valueOf(response));
+
                     try {
                         JSONObject jsonObject = new JSONObject(response);
-                        String result = jsonObject.getString("status");
-                        if(result.equals("success")){
+                        String status = jsonObject.getString("status");
+
+                        if(status.equals("success")) {
+//                            sessionKey =jsonObject.getString("session_key");
+
+                            Log.d("JSON", "status: " + status);
+                            Toast.makeText(this, status, Toast.LENGTH_SHORT).show();
+
                             sharedPrefs.setLoggedInUser(username);
-                            Log.d("TAG", "resultKey " + result);
-                            Toast.makeText(this, result, Toast.LENGTH_LONG).show();
-                            startActivity(new Intent(this, LoginActivity.class));
+//                            sharedPrefs.setSessionKey(sessionKey); TODO: we probably need a session key
+
+                            // Send this back to login screen or main activity?
+                            startActivity(new Intent(SignUpActivity.this, LoginActivity.class));
                             finish();
                         }
-                        Toast toast =  Toast.makeText(this, result, Toast.LENGTH_LONG);
-                        toast.show();
-                        Log.d("TAG", "resultKey1 " + result);
+
+                        Toast.makeText(this, status, Toast.LENGTH_SHORT).show();
+                        Log.d("JSON", "status1: " + status);
                     } catch (JSONException e) {
                         e.printStackTrace();
-                        Toast.makeText(this, "Error, Please try again " + e.toString(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "try/catch error", Toast.LENGTH_SHORT).show();
                     }
                 },
                 error -> {
-                    Toast.makeText(this, "Error, Please try again" + error.toString(), Toast.LENGTH_LONG).show();
+                    VolleyLog.d("Error", "Error: " + error.getMessage());
+                    Toast.makeText(this, "" + error.getMessage(), Toast.LENGTH_SHORT).show();
                 }) {
             @Nullable
             @Override
@@ -131,14 +146,14 @@ public class SignUpActivity extends AppCompatActivity {
                 params.put("email", email);
                 params.put("username", username);
                 params.put("password", password);
+                // TODO: do we need this println?
                 for (Map.Entry<String, String> entry : params.entrySet()) {
                     System.out.println(entry.getKey() + "/" + entry.getValue());
                 }
                 return params;
             }
         };
+
         RequestHandler.getInstance(this).addToRequestQueue(stringRequest);
-        //
-       //
     }
 }
