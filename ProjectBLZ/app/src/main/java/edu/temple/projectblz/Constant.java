@@ -46,9 +46,10 @@ public class Constant {
         //Constant for URL
         public static final String ParkPhp = "http://192.168.1.78/insertpark.php";
         //Constant for Parking
-        public static final String ParkingLatitude = "Parking Latitude";
-        public static final String ParkingLongitude = "Parking Longitude";
-        public static final String ParkingDriverID= "Parking Driver ID";
+        public static final String ParkingLatitude = "park_lat";
+        public static final String ParkingLongitude = "park_lon";
+        public static final String ParkingDriverID= "driver_id";
+
 
 
 
