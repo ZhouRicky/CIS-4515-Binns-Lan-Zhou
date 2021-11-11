@@ -12,4 +12,16 @@
     <string name="confirm_password_hint">Re-enter Password</string>
     <string name="create_account_button">Create account</string>
     <string name="cancel">Cancel</string>
+    <string name="email_hint">Email</string>
+    <string name="button">Button</string>
+    <!--to toggle the open close button
+        of the navigation drawer-->
+    <string name="nav_open">Open navigation drawer</string>
+    <string name="nav_close">Close navigation drawer</string>
+    <!---->
+    <!--strings used for navigation_menu.xml-->
+    <string name="item_1">Item 1</string>
+    <string name="item_2">Item 2</string>
+    <string name="item_3">Item 3</string>
+    <!---->
 </resources>

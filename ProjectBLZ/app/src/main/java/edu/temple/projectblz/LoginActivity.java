@@ -5,21 +5,32 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.StringRequest;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -30,7 +41,7 @@ public class LoginActivity extends AppCompatActivity {
     Button loginButton;
 
     boolean isLocationPermissionGranted;
-    String username, password;
+    String username, password, sessionKey;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,12 +136,52 @@ public class LoginActivity extends AppCompatActivity {
 
     private void login() {
         // TODO: log in request
-        //  - Implement php verifying credential
+        //  - Implement php verifying credential (need a set url)
         //  - Add necessary info to shared preferences (username & session_key if we use it)
+        final String URL = "http://192.168.1.78/login.php";//"https://cis-linux2.temple.edu/~tul58076/login.php";
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, URL,
+                response -> {
 
-        // for now we'll just make it redirect to main activity
-        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-        startActivity(intent);
+//                    Log.d("JSON", String.valueOf(response));
+
+                    try {
+                        JSONObject jsonObject = new JSONObject(response);
+                        String status = jsonObject.getString("status");
+
+                        if(status.equals("success")) {
+//                            sessionKey = jsonObject.getString("session_key"); // TODO: we probably need a session key
+
+                            Log.d("JSON", "status: " + status);
+                            Toast.makeText(this, status, Toast.LENGTH_SHORT).show();
+
+                            sharedPrefs.setLoggedInUser(username);
+//                            sharedPrefs.setSessionKey(sessionKey);
+
+                            startActivity(new Intent(this, MainActivity.class));
+                            finish();
+                        }
+
+                        Toast.makeText(this, status, Toast.LENGTH_SHORT).show();
+                        Log.d("TAG", "resultKey1 " + status);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Toast.makeText(this, "try/catch error", Toast.LENGTH_SHORT).show();
+                    }
+                },
+                error -> {
+                    VolleyLog.d("Error", "Error: " + error.getMessage());
+                }) {
+            @Nullable
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("username", username);
+                params.put("password", password);
+                return params;
+            }
+        };
+
+        RequestHandler.getInstance(this).addToRequestQueue(stringRequest);
     }
 
     // redirect user to main activity
