@@ -4,20 +4,27 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -49,8 +56,9 @@ import org.osmdroid.views.overlay.Marker;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, SensorEventListener {
 
     public static final String TAG = "Main Activity";
 
@@ -73,6 +81,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     ActionBarDrawerToggle toggle;
     NavigationView navigationView;
 
+
+    //Initializing a sensor, sensormanager
+    SensorManager sensorManager;
+    Sensor LightSensor, AcceleroMeterSensor;
+    Context context;
+
+
+
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -84,9 +101,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         sharedPrefs = new SharedPrefs(this);
 
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, new IntentFilter("driverMood"));
-
+        //TODO Get all of those into Initialization(). easier to read
         createNotificationChannel();
         getStartService();
+
+        Initialization();
 
         locationManager = getSystemService(LocationManager.class);
 
@@ -122,12 +141,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         map.setBuiltInZoomControls(true);
         map.setMultiTouchControls(true);
 
-        if  (!isGPSPermission()){
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 123);
-        }
-        else{
-            getGPS();
-        }
+
+        RequestPermission();
 
         mapController = map.getController();
         if(myLocation!=null) {
@@ -158,12 +173,35 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     }
 
+    private void Initialization() {
+        sensorManager             = (SensorManager) getSystemService(Service.SENSOR_SERVICE);
+        LightSensor               = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+        AcceleroMeterSensor       = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+    }
+
+    private void RequestPermission() {
+        if  (!isGPSPermission()){
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, Constant.RequestCode_FineLocation);
+        }
+        else {
+            getGPS();
+        }
+        if(!isWriteSettingPermission()){
+            requestPermissions(new String[]{Manifest.permission.WRITE_SETTINGS}, Constant.RequestCode_WriteSetting);
+        }
+    }
+
     /**
      * this will refresh the osmdroid configuration on resuming
      */
     public void onResume() {
         super.onResume();
         map.onResume();
+        //register light sensor and accelerometer sensor
+
+        sensorManager.registerListener(this,LightSensor,sensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(this,AcceleroMeterSensor,sensorManager.SENSOR_DELAY_NORMAL);
+
     }
 
     /**
@@ -172,6 +210,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void onPause() {
         super.onPause();
         map.onPause();
+        //onpause unregister the sensor
+        sensorManager.unregisterListener(this);
     }
 
     public void onStop(){
@@ -184,6 +224,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
     }
 
+    //Check if User have WriteSetting PErmission
+    private boolean isWriteSettingPermission(){
+        return checkSelfPermission(Manifest.permission.WRITE_SETTINGS) == PackageManager.PERMISSION_GRANTED;
+    }
+
+
     /**if permission is granted, get last known gps location*/
     @SuppressLint("MissingPermission")
     private void getGPS(){
@@ -195,8 +241,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void onRequestPermissionsResult (int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 123 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+        if (requestCode == Constant.RequestCode_FineLocation && grantResults[0] == PackageManager.PERMISSION_GRANTED)
             getGPS();
+        if (requestCode == Constant.RequestCode_WriteSetting && grantResults[0] != PackageManager.PERMISSION_GRANTED){
+            //TODO Implement Alert notify brightness caution
+        }
     }
 
     private void savePark() {
@@ -377,5 +426,37 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         drawerLayout.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent sensorEvent) {
+        if(sensorEvent.sensor.getType()==Sensor.TYPE_ACCELEROMETER) {
+            //TODO Implement feature of accelerometer based of floating bar
+        }
+        //Implemented simple algorithm for light sensor
+        if(sensorEvent.sensor.getType()==Sensor.TYPE_LIGHT){
+            setBrightness((int)sensorEvent.values[0]);
+        }
+
+    }
+
+    private void setBrightness(int brightness) {
+        //TODO Implement Algorithm for brightness control
+
+        if(brightness < Constant.Brightness_Zero){
+            brightness = Constant.Brightness_Zero;
+        }
+        else if(brightness > Constant.Brightness_Max){
+            brightness = Constant.Brightness_Max;
+        }
+
+        ContentResolver contentResolver = getApplicationContext().getContentResolver();
+        Settings.System.putInt(contentResolver, Settings.System.SCREEN_BRIGHTNESS,brightness);
+
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int i) {
+
     }
 }

@@ -27,4 +27,13 @@ public class Constant {
     public static final String ENTER_ALL_INFO = "Please enter all information.";
     public static final String PW_DO_NOT_MATCH = "Passwords do not match.";
 
+
+    //Constant for MainActivity
+        //Constant for RequestCode
+        public static final int RequestCode_FineLocation = 123;
+        public static final int RequestCode_WriteSetting = 234;
+        //Constant for brightness
+        public static final int Brightness_Zero = 0;
+        public static final int Brightness_Max = 255;
+
 }
