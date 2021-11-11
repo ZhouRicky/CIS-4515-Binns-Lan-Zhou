@@ -16,6 +16,7 @@ public class Constant {
     public static final String SHARED_PREFS_NAME = "ProjectBLZ";
     public static final String SHARED_PREFS_DEFAULT_STRING = "None";
     public static final String USERNAME = "username";
+    public static final String SESSION_KEY = "session_key";
     public static final String IS_LOCATION_PERMISSION_GRANTED = "is_location_permission_granted";
 
     // constants for LoginActivity

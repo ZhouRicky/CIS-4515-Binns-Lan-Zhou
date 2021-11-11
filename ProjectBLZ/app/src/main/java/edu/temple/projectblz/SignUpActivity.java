@@ -1,7 +1,6 @@
 package edu.temple.projectblz;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -15,10 +14,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
-import com.android.volley.RequestQueue;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -113,15 +110,15 @@ public class SignUpActivity extends AppCompatActivity {
                         String status = jsonObject.getString("status");
 
                         if(status.equals("success")) {
-//                            sessionKey =jsonObject.getString("session_key");
+//                            sessionKey = jsonObject.getString("session_key"); // TODO: we probably need a session key
 
                             Log.d("JSON", "status: " + status);
                             Toast.makeText(this, status, Toast.LENGTH_SHORT).show();
 
                             sharedPrefs.setLoggedInUser(username);
-//                            sharedPrefs.setSessionKey(sessionKey); TODO: we probably need a session key
+//                            sharedPrefs.setSessionKey(sessionKey);
 
-                            // Send this back to login screen or main activity?
+                            // TODO: Send this back to login screen or main activity?
                             startActivity(new Intent(SignUpActivity.this, LoginActivity.class));
                             finish();
                         }
@@ -135,7 +132,6 @@ public class SignUpActivity extends AppCompatActivity {
                 },
                 error -> {
                     VolleyLog.d("Error", "Error: " + error.getMessage());
-                    Toast.makeText(this, "" + error.getMessage(), Toast.LENGTH_SHORT).show();
                 }) {
             @Nullable
             @Override
@@ -146,10 +142,6 @@ public class SignUpActivity extends AppCompatActivity {
                 params.put("email", email);
                 params.put("username", username);
                 params.put("password", password);
-                // TODO: do we need this println?
-                for (Map.Entry<String, String> entry : params.entrySet()) {
-                    System.out.println(entry.getKey() + "/" + entry.getValue());
-                }
                 return params;
             }
         };

@@ -1,15 +1,9 @@
 package edu.temple.projectblz;
 
 import android.Manifest;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
@@ -23,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
+import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.MultiplePermissionsReport;
@@ -46,7 +41,7 @@ public class LoginActivity extends AppCompatActivity {
     Button loginButton;
 
     boolean isLocationPermissionGranted;
-    String username, password;
+    String username, password, sessionKey;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -146,26 +141,35 @@ public class LoginActivity extends AppCompatActivity {
         final String URL = "http://192.168.1.78/login.php";//"https://cis-linux2.temple.edu/~tul58076/login.php";
         StringRequest stringRequest = new StringRequest(Request.Method.POST, URL,
                 response -> {
-                   // Log.d("TAG", "Response: " + response);
+
+//                    Log.d("JSON", String.valueOf(response));
+
                     try {
                         JSONObject jsonObject = new JSONObject(response);
+                        String status = jsonObject.getString("status");
 
-                        String result = jsonObject.getString("status");
-                        if(result.equals("success")){
+                        if(status.equals("success")) {
+//                            sessionKey = jsonObject.getString("session_key"); // TODO: we probably need a session key
+
+                            Log.d("JSON", "status: " + status);
+                            Toast.makeText(this, status, Toast.LENGTH_SHORT).show();
+
                             sharedPrefs.setLoggedInUser(username);
+//                            sharedPrefs.setSessionKey(sessionKey);
+
                             startActivity(new Intent(this, MainActivity.class));
                             finish();
                         }
-                        Toast toast =  Toast.makeText(this, result, Toast.LENGTH_LONG);
-                        toast.show();
-                        Log.d("TAG", "resultKey1 " + result);
+
+                        Toast.makeText(this, status, Toast.LENGTH_SHORT).show();
+                        Log.d("TAG", "resultKey1 " + status);
                     } catch (JSONException e) {
                         e.printStackTrace();
-                        Toast.makeText(this, "Error, Please try again " + e.toString(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "try/catch error", Toast.LENGTH_SHORT).show();
                     }
                 },
                 error -> {
-                    Toast.makeText(this, "Error, Please try again" + error.toString(), Toast.LENGTH_LONG).show();
+                    VolleyLog.d("Error", "Error: " + error.getMessage());
                 }) {
             @Nullable
             @Override
@@ -176,6 +180,7 @@ public class LoginActivity extends AppCompatActivity {
                 return params;
             }
         };
+
         RequestHandler.getInstance(this).addToRequestQueue(stringRequest);
     }
 

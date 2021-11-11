@@ -1,6 +1,5 @@
 package edu.temple.projectblz;
 
-
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
@@ -20,17 +19,24 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
+import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
+import com.google.android.material.navigation.NavigationView;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -44,10 +50,12 @@ import org.osmdroid.views.overlay.Marker;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+
+    public static final String TAG = "Main Activity";
 
     SharedPrefs sharedPrefs;
-   // String lat = "40.4589";
+    //String lat = "40.4589";
     //String lon = "-35.5698";
     String id = "12";
     MapView map;
@@ -61,11 +69,14 @@ public class MainActivity extends AppCompatActivity {
     double lat;
     double lon;
 
+    DrawerLayout drawerLayout;
+    ActionBarDrawerToggle toggle;
+    NavigationView navigationView;
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
 
         /** ensures that the map has a writable location for the map cache*/
@@ -78,6 +89,32 @@ public class MainActivity extends AppCompatActivity {
         getStartService();
 
         locationManager = getSystemService(LocationManager.class);
+
+
+        // ================================================================================
+        //      Navigation Drawer Code Start
+        // ================================================================================
+
+        // drawer layout instance to toggle the menu icon to open
+        // drawer and back button to close drawer
+        drawerLayout = findViewById(R.id.myDrawerLayout);
+        navigationView = findViewById(R.id.myNavigationView);
+        toggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.nav_open, R.string.nav_close);
+
+        // pass the Open and Close toggle for the drawer layout listener
+        // to toggle the button
+        drawerLayout.addDrawerListener(toggle);
+        toggle.syncState();
+
+        // to make the Navigation drawer icon always appear on the action bar
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        navigationView.setNavigationItemSelectedListener(this);
+
+        // ================================================================================
+        //      Navigation Drawer Code End
+        // ================================================================================
+
 
         map = (MapView) findViewById(R.id.map);
         map.setTileSource(TileSourceFactory.MAPNIK);
@@ -167,24 +204,27 @@ public class MainActivity extends AppCompatActivity {
         final String URL = "http://192.168.1.78/insertpark.php";//"https://cis-linux2.temple.edu/~tul58076/insertpark.php";
         StringRequest stringRequest = new StringRequest(Request.Method.POST, URL,
                 response -> {
-                    Log.d("TAG1", "Response: " + response);
+
+//                    Log.d("JSON", String.valueOf(response));
+
                     try {
                         JSONObject jsonObject = new JSONObject(response);
-                        String result = jsonObject.getString("status");
-                        if (result.equals("success")) {
-                            //sharedPrefs.setLoggedInUser(username);
-                            Toast.makeText(this, "Location saved", Toast.LENGTH_LONG).show();
+                        String status = jsonObject.getString("status");
+
+                        if (status.equals("success")) {
+                            // TODO: add local save location functionality if needed
+                            Toast.makeText(this, "Location saved", Toast.LENGTH_SHORT).show();
                         }
-                        Toast toast = Toast.makeText(this, result, Toast.LENGTH_LONG);
-                        toast.show();
-                        Log.d("TAG", "resultKey1 " + result);
+
+                        Toast.makeText(this, status, Toast.LENGTH_SHORT).show();
+                        Log.d("JSON", "status1: " + status);
                     } catch (JSONException e) {
                         e.printStackTrace();
-                        Toast.makeText(this, "Error, Please try again " + e.toString(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "try/catch error", Toast.LENGTH_SHORT).show();
                     }
                 },
                 error -> {
-                    Toast.makeText(this, "Error, Please try again" + error.toString(), Toast.LENGTH_LONG).show();
+                    VolleyLog.d("Error", "Error: " + error.getMessage());
                 }) {
             @Nullable
             @Override
@@ -196,6 +236,7 @@ public class MainActivity extends AppCompatActivity {
                 return params;
             }
         };
+
         RequestHandler.getInstance(this).addToRequestQueue(stringRequest);
     }
 
@@ -255,7 +296,7 @@ public class MainActivity extends AppCompatActivity {
             lat = intent.getDoubleExtra(Constant.LATITUDE, 0);
             lon = intent.getDoubleExtra(Constant.LONGITUDE, 0);
             Log.d("lat", "this lat " + lat);
-            if(startMarker == null){
+            if (startMarker == null) {
                 startPoint.setCoords(lat, lon);
                 startMarker.setPosition(startPoint);
                 startMarker.setTitle("You are here");
@@ -263,8 +304,7 @@ public class MainActivity extends AppCompatActivity {
                 startMarker.setIcon(drawable);
                 startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
                 map.getOverlays().add(startMarker);
-            }
-            else{
+            } else {
                 GeoPoint geoPoint = new GeoPoint(lat, lon);
                 startPoint.setCoords(lat, lon);
                 //startPoint.bearingTo(geoPoint);
@@ -275,14 +315,16 @@ public class MainActivity extends AppCompatActivity {
             mapController.setZoom(19.5);
             startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
             map.getOverlays().add(startMarker);
-           // mapController = map.getController();
-           // if(myLocation!=null) {
-              //  startPoint = new GeoPoint(lat, lon);
-             //   mapController.setCenter(startPoint);
-               // mapController.setZoom(19.5);
-               // startMarker = new Marker(map);
-              //  startMarker.setPosition(startPoint);
-           // }
+            /*
+            mapController = map.getController();
+            if(myLocation!=null) {
+                startPoint = new GeoPoint(lat, lon);
+                mapController.setCenter(startPoint);
+                mapController.setZoom(19.5);
+                startMarker = new Marker(map);
+                startMarker.setPosition(startPoint);
+            }
+            */
 
            /* startMarker.setTitle("You are here");
             drawable = getResources().getDrawable(R.drawable.red_car_marker);
@@ -291,7 +333,49 @@ public class MainActivity extends AppCompatActivity {
             map.getOverlays().add(startMarker);*/
 
 
-
         }
     };
+
+
+    // override the onOptionsItemSelected()
+    // function to implement
+    // the item click listener callback
+    // to open and close the navigation
+    // drawer when the icon is clicked
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if(toggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if(drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @SuppressLint("NonConstantResourceId")
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        // TODO: add menu items and functionality to each menu item
+        switch(item.getItemId()) {
+            case R.id.nav_item_1:
+                Toast.makeText(this, "Clicked Item 1", Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.nav_item_2:
+                Toast.makeText(this, "Clicked item 2", Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.nav_item_3:
+                Toast.makeText(this, "Clicked item 3", Toast.LENGTH_SHORT).show();
+                break;
+        }
+
+        drawerLayout.closeDrawer(GravityCompat.START);
+        return true;
+    }
 }

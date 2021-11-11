@@ -16,8 +16,10 @@ public class SharedPrefs {
     public void clearAllUserSettings() {
         //TODO: add clear methods here
         clearLoggedInUser();
+        clearSessionKey();
         clearAccessLocationPermissionGranted();
     }
+
 
     // ================================================================================
     //      USERNAME FOR CURRENTLY LOGGED IN USER
@@ -36,6 +38,25 @@ public class SharedPrefs {
         setLoggedInUser(Constant.SHARED_PREFS_DEFAULT_STRING);
     }
 
+
+    // ================================================================================
+    //      SESSION_KEY FOR CURRENTLY LOGGED IN USER
+    // ================================================================================
+    public void setSessionKey(String sessionKey) {
+        SharedPreferences.Editor editor = sharedPrefs.edit();
+        editor.putString(Constant.SESSION_KEY, sessionKey);
+        editor.apply();
+    }
+
+    public String getSessionKey() {
+        return sharedPrefs.getString(Constant.SESSION_KEY, Constant.SHARED_PREFS_DEFAULT_STRING);
+    }
+
+    protected void clearSessionKey() {
+        setSessionKey(Constant.SHARED_PREFS_DEFAULT_STRING);
+    }
+
+
     // ================================================================================
     //      IS ACCESS FINE LOCATION PERMISSION GRANTED FOR CURRENTLY LOGGED IN USER
     // ================================================================================
@@ -45,11 +66,9 @@ public class SharedPrefs {
         editor.apply();
     }
 
-
     public Boolean getAccessLocationPermissionGranted() {
         return sharedPrefs.getBoolean(Constant.IS_LOCATION_PERMISSION_GRANTED, false);
     }
-
 
     protected void clearAccessLocationPermissionGranted() {
         setAccessLocationPermissionGranted(false);
