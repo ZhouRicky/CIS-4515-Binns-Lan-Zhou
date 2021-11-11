@@ -74,6 +74,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     LocationManager locationManager;
     Location myLocation;
     LocationService myService;
+
     double lat;
     double lon;
 
@@ -81,16 +82,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     ActionBarDrawerToggle toggle;
     NavigationView navigationView;
 
-
     //Initializing a sensor, sensormanager
     SensorManager sensorManager;
     Sensor LightSensor, AcceleroMeterSensor;
     Context context;
 
-
-
-
     @RequiresApi(api = Build.VERSION_CODES.O)
+
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -100,12 +99,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Configuration.getInstance().load(getApplication(), PreferenceManager.getDefaultSharedPreferences(getApplication()));
         sharedPrefs = new SharedPrefs(this);
 
+        //request location & writting to system permission
+        RequestPermission();
+        //initialization of the sensor and manager
+        Initialization();
+
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, new IntentFilter("driverMood"));
         //TODO Get all of those into Initialization(). easier to read
-        createNotificationChannel();
-        getStartService();
 
-        Initialization();
+        createNotificationChannel();
+
+        getStartService();
 
         locationManager = getSystemService(LocationManager.class);
 
@@ -134,15 +138,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         //      Navigation Drawer Code End
         // ================================================================================
 
-
+        //map initialization
         map = (MapView) findViewById(R.id.map);
         map.setTileSource(TileSourceFactory.MAPNIK);
-
         map.setBuiltInZoomControls(true);
         map.setMultiTouchControls(true);
-
-
-        RequestPermission();
 
         mapController = map.getController();
         if(myLocation!=null) {
@@ -164,20 +164,24 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void onClick(View v) {
                 Log.d("t", "I CAME HERE");
-
                     savePark();
-
                 Log.d("t", "I CAME HERE2");
             }
         });
 
     }
 
+    /*initialization of
+           1.sensor Manager
+           2.Light Sensor
+           3.AcceleroMeterSensor
+     */
     private void Initialization() {
         sensorManager             = (SensorManager) getSystemService(Service.SENSOR_SERVICE);
         LightSensor               = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
         AcceleroMeterSensor       = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
     }
+
 
     private void RequestPermission() {
         if  (!isGPSPermission()){
