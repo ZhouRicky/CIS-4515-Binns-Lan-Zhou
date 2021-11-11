@@ -138,8 +138,9 @@ public class LoginActivity extends AppCompatActivity {
         // TODO: log in request
         //  - Implement php verifying credential (need a set url)
         //  - Add necessary info to shared preferences (username & session_key if we use it)
-        final String URL = "http://192.168.1.78/login.php";//"https://cis-linux2.temple.edu/~tul58076/login.php";
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, URL,
+        //final String URL = "http://192.168.1.78/login.php";//"https://cis-linux2.temple.edu/~tul58076/login.php";
+        //Constant loginPhp
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, Constant.LoginPhp,
                 response -> {
 
 //                    Log.d("JSON", String.valueOf(response));

@@ -60,7 +60,6 @@ import java.util.Set;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, SensorEventListener {
 
-    public static final String TAG = "Main Activity";
 
     SharedPrefs sharedPrefs;
     //String lat = "40.4589";
@@ -183,6 +182,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
 
+    /*
+        Request Permission at starting of the activity
+            * Location Permission
+            * Write Setting Permission
+     */
     private void RequestPermission() {
         if  (!isGPSPermission()){
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, Constant.RequestCode_FineLocation);
@@ -197,6 +201,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     /**
      * this will refresh the osmdroid configuration on resuming
+     * Registering Listener
      */
     public void onResume() {
         super.onResume();
@@ -210,6 +215,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     /**
      * this will enable osmdroid to be refreshed
+     * UnregisterListener
      */
     public void onPause() {
         super.onPause();
@@ -253,9 +259,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void savePark() {
-
-        final String URL = "http://192.168.1.78/insertpark.php";//"https://cis-linux2.temple.edu/~tul58076/insertpark.php";
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, URL,
+        //I am replacing URL into CONSTANT :::ParkPhp
+        //"https://cis-linux2.temple.edu/~tul58076/insertpark.php";
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, Constant.ParkPhp,
                 response -> {
 
 //                    Log.d("JSON", String.valueOf(response));
@@ -264,7 +270,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         JSONObject jsonObject = new JSONObject(response);
                         String status = jsonObject.getString("status");
 
-                        if (status.equals("success")) {
+                        if (status.equals(Constant.SUCCESS_CODE)) {
                             // TODO: add local save location functionality if needed
                             Toast.makeText(this, "Location saved", Toast.LENGTH_SHORT).show();
                         }
@@ -283,9 +289,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
                 Map<String, String> params = new HashMap<>();
-                params.put("park_lat", String.valueOf(lat)); //TODO
-                params.put("park_lon", String.valueOf(lon));//TODO
-                params.put("driver_id", id);//TODO
+                params.put(Constant.ParkingLatitude, String.valueOf(lat)); //TODO
+                params.put(Constant.ParkingLongitude, String.valueOf(lon));//TODO
+                params.put(Constant.ParkingDriverID, id);//TODO
                 return params;
             }
         };
@@ -461,6 +467,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int i) {
-
+        //TODO override for interface, would have to implement if needed for accerlerometer sensor
     }
 }
