@@ -31,7 +31,7 @@ public class SignUpActivity extends AppCompatActivity {
     EditText firstNameEditText, lastNameEditText, usernameEditText, passwordEditText, confirmPasswordEditText, emailEditText;
     Button createAccountButton;
 
-    String firstName, lastName, username, password, confirmPassword, email, sessionKey;
+    String firstName, lastName, username, password, confirmPassword, email;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -110,16 +110,15 @@ public class SignUpActivity extends AppCompatActivity {
                         String status = jsonObject.getString("status");
 
                         if(status.equals("success")) {
-//                            sessionKey = jsonObject.getString("session_key"); // TODO: we probably need a session key
 
                             Log.d("JSON", "status: " + status);
                             Toast.makeText(this, status, Toast.LENGTH_SHORT).show();
 
                             sharedPrefs.setLoggedInUser(username);
-//                            sharedPrefs.setSessionKey(sessionKey);
+                            sharedPrefs.setIsLoggedIn(true);
 
                             // TODO: Send this back to login screen or main activity?
-                            startActivity(new Intent(SignUpActivity.this, LoginActivity.class));
+                            startActivity(new Intent(this, LoginActivity.class));
                             finish();
                         }
 

@@ -40,8 +40,7 @@ public class LoginActivity extends AppCompatActivity {
     EditText usernameEditText, passwordEditText;
     Button loginButton;
 
-    boolean isLocationPermissionGranted;
-    String username, password, sessionKey;
+    String username, password;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,8 +66,8 @@ public class LoginActivity extends AppCompatActivity {
                     if(username.isEmpty() || password.isEmpty()) {
                         statusTextView.setText(Constant.INCORRECT_INFO);
                     } else {
-                        if(!isLocationPermissionGranted) {
-                            Toast.makeText(LoginActivity.this, "Please enable location permissions", Toast.LENGTH_SHORT).show();
+                        if(!sharedPrefs.getIsPermissionGranted()) {
+                            Toast.makeText(LoginActivity.this, "Please enable all necessary permissions", Toast.LENGTH_SHORT).show();
                         } else {
                             login();
                         }
@@ -94,17 +93,17 @@ public class LoginActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         checkPermission();
-//        redirectIfLoggedIn(); // TODO: uncomment when logout button is implemented
+        redirectIfLoggedIn(); // TODO: check if working properly
     }
 
     // uses dexter library to check for permissions at runtime
     private void checkPermission() {
-        Dexter.withContext(this).withPermissions(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION).withListener(new MultiplePermissionsListener() {
+        Dexter.withContext(this).withPermissions(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.READ_EXTERNAL_STORAGE)
+                .withListener(new MultiplePermissionsListener() {
             @Override
             public void onPermissionsChecked(MultiplePermissionsReport multiplePermissionsReport) {
                 if(multiplePermissionsReport.areAllPermissionsGranted()) {
-                    isLocationPermissionGranted = true;
-                    sharedPrefs.setAccessLocationPermissionGranted(true);
+                    sharedPrefs.setIsPermissionGranted(true);
                 }
 
                 if(multiplePermissionsReport.getDeniedPermissionResponses().size() > 0){
@@ -149,13 +148,12 @@ public class LoginActivity extends AppCompatActivity {
                         String status = jsonObject.getString("status");
 
                         if(status.equals("success")) {
-//                            sessionKey = jsonObject.getString("session_key"); // TODO: we probably need a session key
 
                             Log.d("JSON", "status: " + status);
                             Toast.makeText(this, status, Toast.LENGTH_SHORT).show();
 
                             sharedPrefs.setLoggedInUser(username);
-//                            sharedPrefs.setSessionKey(sessionKey);
+                            sharedPrefs.setIsLoggedIn(true);
 
                             startActivity(new Intent(this, MainActivity.class));
                             finish();
@@ -184,13 +182,12 @@ public class LoginActivity extends AppCompatActivity {
         RequestHandler.getInstance(this).addToRequestQueue(stringRequest);
     }
 
-    // redirect user to main activity
-    // TODO: uncomment when logout button is implemented
-    //  - need to add session_key if used
-//    private void redirectIfLoggedIn() {
-//        if(!sharedPrefs.getLoggedInUser().equals(Constant.SHARED_PREFS_DEFAULT_STRING)) {
-//            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-//            startActivity(intent);
-//        }
-//    }
+    // redirect user to main activity if not explicitly logged out
+    // TODO: check if working properly
+    private void redirectIfLoggedIn() {
+        if(!sharedPrefs.getLoggedInUser().equals(Constant.SHARED_PREFS_DEFAULT_STRING) && sharedPrefs.getIsLoggedIn().equals(true)) {
+            startActivity(new Intent(this, MainActivity.class));
+            finish();
+        }
+    }
 }

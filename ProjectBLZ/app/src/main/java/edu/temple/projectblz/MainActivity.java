@@ -370,8 +370,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             case R.id.nav_item_2:
                 Toast.makeText(this, "Clicked item 2", Toast.LENGTH_SHORT).show();
                 break;
-            case R.id.nav_item_3:
-                Toast.makeText(this, "Clicked item 3", Toast.LENGTH_SHORT).show();
+            case R.id.nav_logout:
+                sharedPrefs.clearAllUserSettings();
+                startActivity(new Intent(this, LoginActivity.class));
+                finish();
                 break;
         }
 

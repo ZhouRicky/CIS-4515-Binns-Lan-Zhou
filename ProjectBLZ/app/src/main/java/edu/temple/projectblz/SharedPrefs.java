@@ -16,8 +16,8 @@ public class SharedPrefs {
     public void clearAllUserSettings() {
         //TODO: add clear methods here
         clearLoggedInUser();
-        clearSessionKey();
-        clearAccessLocationPermissionGranted();
+        clearIsLoggedIn();
+        clearIsPermissionGranted();
     }
 
 
@@ -42,36 +42,36 @@ public class SharedPrefs {
     // ================================================================================
     //      SESSION_KEY FOR CURRENTLY LOGGED IN USER
     // ================================================================================
-    public void setSessionKey(String sessionKey) {
+    public void setIsLoggedIn(Boolean isLoggedIn) {
         SharedPreferences.Editor editor = sharedPrefs.edit();
-        editor.putString(Constant.SESSION_KEY, sessionKey);
+        editor.putBoolean(Constant.IS_LOGGED_IN, isLoggedIn);
         editor.apply();
     }
 
-    public String getSessionKey() {
-        return sharedPrefs.getString(Constant.SESSION_KEY, Constant.SHARED_PREFS_DEFAULT_STRING);
+    public Boolean getIsLoggedIn() {
+        return sharedPrefs.getBoolean(Constant.IS_LOGGED_IN, false);
     }
 
-    protected void clearSessionKey() {
-        setSessionKey(Constant.SHARED_PREFS_DEFAULT_STRING);
+    protected void clearIsLoggedIn() {
+        setIsLoggedIn(false);
     }
 
 
     // ================================================================================
     //      IS ACCESS FINE LOCATION PERMISSION GRANTED FOR CURRENTLY LOGGED IN USER
     // ================================================================================
-    public void setAccessLocationPermissionGranted(Boolean isPermissionGranted) {
+    public void setIsPermissionGranted(Boolean isPermissionGranted) {
         SharedPreferences.Editor editor = sharedPrefs.edit();
-        editor.putBoolean(Constant.IS_LOCATION_PERMISSION_GRANTED, isPermissionGranted);
+        editor.putBoolean(Constant.IS_PERMISSION_GRANTED, isPermissionGranted);
         editor.apply();
     }
 
-    public Boolean getAccessLocationPermissionGranted() {
-        return sharedPrefs.getBoolean(Constant.IS_LOCATION_PERMISSION_GRANTED, false);
+    public Boolean getIsPermissionGranted() {
+        return sharedPrefs.getBoolean(Constant.IS_PERMISSION_GRANTED, false);
     }
 
-    protected void clearAccessLocationPermissionGranted() {
-        setAccessLocationPermissionGranted(false);
+    protected void clearIsPermissionGranted() {
+        setIsPermissionGranted(false);
     }
 
 }

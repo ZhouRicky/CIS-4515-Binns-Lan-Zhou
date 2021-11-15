@@ -16,8 +16,8 @@ public class Constant {
     public static final String SHARED_PREFS_NAME = "ProjectBLZ";
     public static final String SHARED_PREFS_DEFAULT_STRING = "None";
     public static final String USERNAME = "username";
-    public static final String SESSION_KEY = "session_key";
-    public static final String IS_LOCATION_PERMISSION_GRANTED = "is_location_permission_granted";
+    public static final String IS_LOGGED_IN = "is_logged_in";
+    public static final String IS_PERMISSION_GRANTED = "is_permission_granted";
 
     // constants for LoginActivity
     public static final String INVALID_INPUT = "Please enter username and/or password.";
