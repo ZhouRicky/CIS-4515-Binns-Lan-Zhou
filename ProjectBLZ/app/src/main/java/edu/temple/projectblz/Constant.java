@@ -3,7 +3,9 @@ package edu.temple.projectblz;
 public class Constant {
 
     // constants URL
-    public static final String URL = "";//TODO: some url
+    public static final String LOGIN_URL = "http://cis-linux2.temple.edu/~tul58076/login.php";
+    public static final String REGISTER_URL = "http://cis-linux2.temple.edu/~tul58076/register.php";
+    public static final String PARK_URL = "http://cis-linux2.temple.edu/~tul58076/insertpark.php";
 
     // constants for LocationService
     public static final String LOG_LOCATION = "Location";

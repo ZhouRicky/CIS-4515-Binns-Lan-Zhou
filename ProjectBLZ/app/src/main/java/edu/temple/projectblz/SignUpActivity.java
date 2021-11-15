@@ -98,9 +98,7 @@ public class SignUpActivity extends AppCompatActivity {
         // TODO: create account request
         //  - Implement php (need a set url)
         //  - Add necessary info to shared preferences (username & session_key if we use it)
-
-        final String URL = "http://cis-linux2.temple.edu/~tul58076/register.php";
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, URL,
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, Constant.REGISTER_URL,
                 response -> {
 
                     // TODO: Refactor code block

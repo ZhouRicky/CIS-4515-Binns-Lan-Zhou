@@ -21,6 +21,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -69,6 +70,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     double lat;
     double lon;
 
+    TextView speedLimitValue, currentSpeedValue;
+
     DrawerLayout drawerLayout;
     ActionBarDrawerToggle toggle;
     NavigationView navigationView;
@@ -90,6 +93,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         locationManager = getSystemService(LocationManager.class);
 
+        speedLimitValue = findViewById(R.id.speedLimitValueTextView);
+        currentSpeedValue = findViewById(R.id.currentSpeedValueTextView);
 
         // ================================================================================
         //      Navigation Drawer Code Start
@@ -198,9 +203,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void savePark() {
-
-        final String URL = "http://cis-linux2.temple.edu/~tul58076/insertpark.php";
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, URL,
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, Constant.PARK_URL,
                 response -> {
 
                     // TODO: Refactor code block
