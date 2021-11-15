@@ -16,6 +16,7 @@ public class SharedPrefs {
     public void clearAllUserSettings() {
         //TODO: add clear methods here
         clearLoggedInUser();
+        clearDriverId();
         clearIsLoggedIn();
         clearIsPermissionGranted();
     }
@@ -36,6 +37,24 @@ public class SharedPrefs {
 
     protected void clearLoggedInUser() {
         setLoggedInUser(Constant.SHARED_PREFS_DEFAULT_STRING);
+    }
+
+
+    // ================================================================================
+    //      USERNAME FOR CURRENTLY LOGGED IN USER
+    // ================================================================================
+    public void setDriverId(String driverId) {
+        SharedPreferences.Editor editor = sharedPrefs.edit();
+        editor.putString(Constant.DRIVER_ID, driverId);
+        editor.apply();
+    }
+
+    public String getDriverId() {
+        return sharedPrefs.getString(Constant.DRIVER_ID, Constant.SHARED_PREFS_DEFAULT_STRING);
+    }
+
+    protected void clearDriverId() {
+        setDriverId(Constant.SHARED_PREFS_DEFAULT_STRING);
     }
 
 

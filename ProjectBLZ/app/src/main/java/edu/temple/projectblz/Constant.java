@@ -3,9 +3,9 @@ package edu.temple.projectblz;
 public class Constant {
 
     // constants URL
-    public static final String LOGIN_URL = "http://cis-linux2.temple.edu/~tul58076/login.php";
-    public static final String REGISTER_URL = "http://cis-linux2.temple.edu/~tul58076/register.php";
-    public static final String PARK_URL = "http://cis-linux2.temple.edu/~tul58076/insertpark.php";
+    public static final String LOGIN_URL = "https://cis-linux2.temple.edu/~tul58076/login.php";
+    public static final String REGISTER_URL = "https://cis-linux2.temple.edu/~tul58076/register.php";
+    public static final String PARK_URL = "https://cis-linux2.temple.edu/~tul58076/insertpark.php";
 
     // constants for LocationService
     public static final String LOG_LOCATION = "Location";
@@ -18,6 +18,7 @@ public class Constant {
     public static final String SHARED_PREFS_NAME = "ProjectBLZ";
     public static final String SHARED_PREFS_DEFAULT_STRING = "None";
     public static final String USERNAME = "username";
+    public static final String DRIVER_ID = "driverId";
     public static final String IS_LOGGED_IN = "is_logged_in";
     public static final String IS_PERMISSION_GRANTED = "is_permission_granted";
 

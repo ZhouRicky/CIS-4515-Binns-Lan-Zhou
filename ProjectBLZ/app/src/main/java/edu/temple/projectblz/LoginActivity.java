@@ -2,8 +2,6 @@ package edu.temple.projectblz;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -20,10 +18,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
-import com.android.volley.RequestQueue;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
@@ -97,8 +93,7 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 // TODO: when user returns from SignUpActivity, the application will be changed to redirect to MainActivity when php gets implemented
-                Intent intent = new Intent(view.getContext(), SignUpActivity.class);
-                startActivity(intent);
+                startActivity(new Intent(view.getContext(), SignUpActivity.class));
             }
         });
     }
@@ -169,6 +164,7 @@ public class LoginActivity extends AppCompatActivity {
                             Log.d("JSON", "success: " + jsonObject.getString("message"));
 
                             sharedPrefs.setLoggedInUser(username);
+                            sharedPrefs.setDriverId(jsonObject.getString("driverId"));
                             sharedPrefs.setIsLoggedIn(true);
 
                             startActivity(new Intent(this, MainActivity.class));
@@ -230,7 +226,9 @@ public class LoginActivity extends AppCompatActivity {
     // redirect user to main activity if not explicitly logged out
     // TODO: check if working properly
     private void redirectIfLoggedIn() {
-        if(!sharedPrefs.getLoggedInUser().equals(Constant.SHARED_PREFS_DEFAULT_STRING) && sharedPrefs.getIsLoggedIn().equals(true)) {
+        if(!sharedPrefs.getLoggedInUser().equals(Constant.SHARED_PREFS_DEFAULT_STRING)
+                && !sharedPrefs.getDriverId().equals(Constant.SHARED_PREFS_DEFAULT_STRING)
+                && sharedPrefs.getIsLoggedIn().equals(true)) {
             startActivity(new Intent(this, MainActivity.class));
             finish();
         }
