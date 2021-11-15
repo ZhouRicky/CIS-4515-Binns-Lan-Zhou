@@ -1,6 +1,7 @@
 package edu.temple.projectblz;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -33,9 +34,18 @@ import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -54,7 +64,7 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         sharedPrefs = new SharedPrefs(this);
-
+       // handleSSLHandshake();
         checkPermission();
         viewInitialization();
 //        redirectIfLoggedIn(); // TODO: uncomment when logout button is implemented
@@ -143,7 +153,7 @@ public class LoginActivity extends AppCompatActivity {
         // TODO: log in request
         //  - Implement php verifying credential
         //  - Add necessary info to shared preferences (username & session_key if we use it)
-        final String URL = "http://192.168.1.78/login.php";//"https://cis-linux2.temple.edu/~tul58076/login.php";
+        final String URL = "https://cis-linux2.temple.edu/~tul58076/login.php";//"https://cis-linux2.temple.edu/~tul58076/login.php";
         StringRequest stringRequest = new StringRequest(Request.Method.POST, URL,
                 response -> {
                    // Log.d("TAG", "Response: " + response);
@@ -165,6 +175,7 @@ public class LoginActivity extends AppCompatActivity {
                     }
                 },
                 error -> {
+            Log.d("tag3",  error.toString());
                     Toast.makeText(this, "Error, Please try again" + error.toString(), Toast.LENGTH_LONG).show();
                 }) {
             @Nullable
@@ -188,4 +199,5 @@ public class LoginActivity extends AppCompatActivity {
 //            startActivity(intent);
 //        }
 //    }
+
 }
