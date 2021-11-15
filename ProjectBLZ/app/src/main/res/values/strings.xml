@@ -13,7 +13,10 @@
     <string name="create_account_button">Create account</string>
     <string name="cancel">Cancel</string>
     <string name="email_hint">Email</string>
-    <string name="button">Button</string>
+    <string name="save_park_location">Save Parking Location</string>
+    <string name="speed_limit">SPEED LIMIT</string>
+    <string name="speed_limit_start_value">10</string>
+    <string name="current_speed">CURRENT SPEED</string>
     <!--to toggle the open close button
         of the navigation drawer-->
     <string name="nav_open">Open navigation drawer</string>

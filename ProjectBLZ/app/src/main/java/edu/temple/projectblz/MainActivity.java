@@ -144,15 +144,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         map.getOverlays().add(startMarker);
 
-
-        findViewById(R.id.button).setOnClickListener(new View.OnClickListener() {
+        // TODO: might be better to move into menu?
+        findViewById(R.id.saveParkButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d("t", "I CAME HERE");
+                Toast.makeText(MainActivity.this, "Hi", Toast.LENGTH_SHORT).show();
 
-                    savePark();
-
-                Log.d("t", "I CAME HERE2");
+                savePark();
             }
         });
 
