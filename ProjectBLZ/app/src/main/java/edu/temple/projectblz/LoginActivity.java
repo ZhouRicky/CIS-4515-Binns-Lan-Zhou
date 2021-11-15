@@ -17,8 +17,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
+import com.android.volley.RequestQueue;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
@@ -137,30 +139,32 @@ public class LoginActivity extends AppCompatActivity {
         // TODO: log in request
         //  - Implement php verifying credential (need a set url)
         //  - Add necessary info to shared preferences (username & session_key if we use it)
-        final String URL = "http://192.168.1.78/login.php";//"https://cis-linux2.temple.edu/~tul58076/login.php";
+        final String URL = "http://cis-linux2.temple.edu/~tul58076/login.php";
         StringRequest stringRequest = new StringRequest(Request.Method.POST, URL,
                 response -> {
 
-//                    Log.d("JSON", String.valueOf(response));
+                    // TODO: problem with JSON response
+                    //  gives 2 objects {"nofault":"no error"}
+                    //    {"driverId":"13","status":"success","message":"User successfully logged in"}
+                    //  figure out how to get rid of {"nofault":"no error"} object
+                    Log.d("JSON", String.valueOf(response));
 
                     try {
                         JSONObject jsonObject = new JSONObject(response);
-                        String status = jsonObject.getString("status");
 
-                        if(status.equals("success")) {
+                        Log.d("JSONObject", jsonObject.toString());
 
-                            Log.d("JSON", "status: " + status);
-                            Toast.makeText(this, status, Toast.LENGTH_SHORT).show();
+                        if(jsonObject.getString("status").equals("success")) {
+                            Log.d("JSON", "success: " + jsonObject.getString("message"));
 
                             sharedPrefs.setLoggedInUser(username);
                             sharedPrefs.setIsLoggedIn(true);
 
                             startActivity(new Intent(this, MainActivity.class));
                             finish();
+                        } else if(jsonObject.getString("status").equals("error")) {
+                            Log.d("JSON", "error: " + jsonObject.getString("message"));
                         }
-
-                        Toast.makeText(this, status, Toast.LENGTH_SHORT).show();
-                        Log.d("TAG", "resultKey1 " + status);
                     } catch (JSONException e) {
                         e.printStackTrace();
                         Toast.makeText(this, "try/catch error", Toast.LENGTH_SHORT).show();

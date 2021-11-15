@@ -99,11 +99,13 @@ public class SignUpActivity extends AppCompatActivity {
         //  - Implement php (need a set url)
         //  - Add necessary info to shared preferences (username & session_key if we use it)
 
-        final String URL = "http://192.168.1.78/register.php";//"https://cis-linux2.temple.edu/~tul58076/register.php";
+        final String URL = "http://cis-linux2.temple.edu/~tul58076/register.php";
         StringRequest stringRequest = new StringRequest(Request.Method.POST, URL,
                 response -> {
 
-//                    Log.d("JSON", String.valueOf(response));
+                    // TODO: Refactor code block
+
+                    Log.d("JSON", String.valueOf(response));
 
                     try {
                         JSONObject jsonObject = new JSONObject(response);

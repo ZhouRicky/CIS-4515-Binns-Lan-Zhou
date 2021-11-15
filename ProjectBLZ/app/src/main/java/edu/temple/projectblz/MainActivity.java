@@ -199,11 +199,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void savePark() {
 
-        final String URL = "http://192.168.1.78/insertpark.php";//"https://cis-linux2.temple.edu/~tul58076/insertpark.php";
+        final String URL = "http://cis-linux2.temple.edu/~tul58076/insertpark.php";
         StringRequest stringRequest = new StringRequest(Request.Method.POST, URL,
                 response -> {
 
-//                    Log.d("JSON", String.valueOf(response));
+                    // TODO: Refactor code block
+
+                    Log.d("JSON", String.valueOf(response));
 
                     try {
                         JSONObject jsonObject = new JSONObject(response);
