@@ -55,7 +55,7 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
-    public static final String TAG = "Main Activity";
+    //public static final String TAG = "Main Activity";
 
     SharedPrefs sharedPrefs;
 
@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     LocationService myService;
     double lat, lon;
 
-    String driverId;
+    String username, password, driverId;
 
     TextView speedLimitValue, currentSpeedValue;
 
@@ -97,6 +97,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         speedLimitValue = findViewById(R.id.speedLimitValueTextView);
         currentSpeedValue = findViewById(R.id.currentSpeedValueTextView);
 
+        username = sharedPrefs.getLoggedInUser();
+        password = sharedPrefs.getPassword();
         driverId = sharedPrefs.getDriverId();
 
         // ================================================================================
@@ -231,7 +233,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         JSONObject jsonObject = new JSONObject(response);
 
                         if (jsonObject.getString("status").equals("success")) {
-                            // TODO: add alertdialog
                             Toast.makeText(this, "Location saved", Toast.LENGTH_SHORT).show();
                             Log.d("JSON", "success: " + jsonObject.getString("message"));
                         } else if(jsonObject.getString("status").equals("error")) {
@@ -249,9 +250,46 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
                 Map<String, String> params = new HashMap<>();
-                params.put("park_lat", String.valueOf(lat)); //TODO
-                params.put("park_lon", String.valueOf(lon));//TODO
-                params.put("driver_id", driverId);//TODO
+                params.put("park_lat", String.valueOf(lat));
+                params.put("park_lon", String.valueOf(lon));
+                params.put("driver_id", driverId);
+                return params;
+            }
+        };
+
+        RequestHandler.getInstance(this).addToRequestQueue(stringRequest);
+    }
+
+    private void parkingHistory() {
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, Constant.HISTORY_URL,
+                response -> {
+
+                    // TODO: we will need a JSONArray with all the parking locations for specified driverId
+                    Log.d("JSON", String.valueOf(response));
+
+                    try {
+                        JSONObject jsonObject = new JSONObject(response);
+
+                        if (jsonObject.getString("status").equals("success")) {
+                            Log.d("JSON", "success: " + jsonObject.getString("message"));
+                        } else if(jsonObject.getString("status").equals("error")) {
+                            Log.d("JSON", "error: " + jsonObject.getString("message"));
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Toast.makeText(this, "try/catch error", Toast.LENGTH_SHORT).show();
+                    }
+                },
+                error -> {
+                    VolleyLog.d("Error", "Error: " + error.getMessage());
+                }) {
+            @Nullable
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("username", username);
+                params.put("password", password);
+                params.put("driver_id", driverId);
                 return params;
             }
         };
@@ -383,8 +421,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // TODO: add menu items and functionality to each menu item
         switch(item.getItemId()) {
-            case R.id.nav_item_1:
-                Toast.makeText(this, "Clicked Item 1", Toast.LENGTH_SHORT).show();
+            case R.id.nav_parking_history:
+                parkingHistory();
                 break;
             case R.id.nav_item_2:
                 Toast.makeText(this, "Clicked item 2", Toast.LENGTH_SHORT).show();

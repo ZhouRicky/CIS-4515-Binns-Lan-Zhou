@@ -23,7 +23,7 @@
     <string name="nav_close">Close navigation drawer</string>
     <!---->
     <!--strings used for navigation_menu.xml-->
-    <string name="item_1">Item 1</string>
+    <string name="nav_parking_history">Parking History</string>
     <string name="item_2">Item 2</string>
     <string name="nav_logout">Logout</string>
     <!---->

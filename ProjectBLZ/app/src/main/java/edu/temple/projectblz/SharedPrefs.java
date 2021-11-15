@@ -14,8 +14,8 @@ public class SharedPrefs {
     }
 
     public void clearAllUserSettings() {
-        //TODO: add clear methods here
         clearLoggedInUser();
+        clearPassword();
         clearDriverId();
         clearIsLoggedIn();
         clearIsPermissionGranted();
@@ -41,7 +41,25 @@ public class SharedPrefs {
 
 
     // ================================================================================
-    //      USERNAME FOR CURRENTLY LOGGED IN USER
+    //      PASSWORD FOR CURRENTLY LOGGED IN USER
+    // ================================================================================
+    public void setPassword(String password) {
+        SharedPreferences.Editor editor = sharedPrefs.edit();
+        editor.putString(Constant.PASSWORD, password);
+        editor.apply();
+    }
+
+    public String getPassword() {
+        return sharedPrefs.getString(Constant.PASSWORD, Constant.SHARED_PREFS_DEFAULT_STRING);
+    }
+
+    protected void clearPassword() {
+        setPassword(Constant.SHARED_PREFS_DEFAULT_STRING);
+    }
+
+
+    // ================================================================================
+    //      DRIVER ID FOR CURRENTLY LOGGED IN USER
     // ================================================================================
     public void setDriverId(String driverId) {
         SharedPreferences.Editor editor = sharedPrefs.edit();
@@ -59,7 +77,7 @@ public class SharedPrefs {
 
 
     // ================================================================================
-    //      SESSION_KEY FOR CURRENTLY LOGGED IN USER
+    //      IS LOGGED IN FOR CURRENTLY LOGGED IN USER
     // ================================================================================
     public void setIsLoggedIn(Boolean isLoggedIn) {
         SharedPreferences.Editor editor = sharedPrefs.edit();
@@ -77,7 +95,7 @@ public class SharedPrefs {
 
 
     // ================================================================================
-    //      IS ACCESS FINE LOCATION PERMISSION GRANTED FOR CURRENTLY LOGGED IN USER
+    //      IS PERMISSION GRANTED FOR CURRENTLY LOGGED IN USER
     // ================================================================================
     public void setIsPermissionGranted(Boolean isPermissionGranted) {
         SharedPreferences.Editor editor = sharedPrefs.edit();

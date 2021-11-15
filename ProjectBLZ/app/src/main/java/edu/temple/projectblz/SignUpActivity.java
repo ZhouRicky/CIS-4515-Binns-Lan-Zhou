@@ -95,13 +95,8 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
     private void createAccount() {
-        // TODO: create account request
-        //  - Implement php (need a set url)
-        //  - Add necessary info to shared preferences (username & session_key if we use it)
         StringRequest stringRequest = new StringRequest(Request.Method.POST, Constant.REGISTER_URL,
                 response -> {
-
-                    // TODO: Refactor code block
 
                     Log.d("JSON", String.valueOf(response));
 
