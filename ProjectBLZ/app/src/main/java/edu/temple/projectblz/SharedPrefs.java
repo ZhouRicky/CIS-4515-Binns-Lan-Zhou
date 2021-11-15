@@ -16,8 +16,10 @@ public class SharedPrefs {
     public void clearAllUserSettings() {
         //TODO: add clear methods here
         clearLoggedInUser();
-        clearAccessLocationPermissionGranted();
+        clearIsLoggedIn();
+        clearIsPermissionGranted();
     }
+
 
     // ================================================================================
     //      USERNAME FOR CURRENTLY LOGGED IN USER
@@ -36,23 +38,40 @@ public class SharedPrefs {
         setLoggedInUser(Constant.SHARED_PREFS_DEFAULT_STRING);
     }
 
+
     // ================================================================================
-    //      IS ACCESS FINE LOCATION PERMISSION GRANTED FOR CURRENTLY LOGGED IN USER
+    //      SESSION_KEY FOR CURRENTLY LOGGED IN USER
     // ================================================================================
-    public void setAccessLocationPermissionGranted(Boolean isPermissionGranted) {
+    public void setIsLoggedIn(Boolean isLoggedIn) {
         SharedPreferences.Editor editor = sharedPrefs.edit();
-        editor.putBoolean(Constant.IS_LOCATION_PERMISSION_GRANTED, isPermissionGranted);
+        editor.putBoolean(Constant.IS_LOGGED_IN, isLoggedIn);
         editor.apply();
     }
 
+    public Boolean getIsLoggedIn() {
+        return sharedPrefs.getBoolean(Constant.IS_LOGGED_IN, false);
+    }
 
-    public Boolean getAccessLocationPermissionGranted() {
-        return sharedPrefs.getBoolean(Constant.IS_LOCATION_PERMISSION_GRANTED, false);
+    protected void clearIsLoggedIn() {
+        setIsLoggedIn(false);
     }
 
 
-    protected void clearAccessLocationPermissionGranted() {
-        setAccessLocationPermissionGranted(false);
+    // ================================================================================
+    //      IS ACCESS FINE LOCATION PERMISSION GRANTED FOR CURRENTLY LOGGED IN USER
+    // ================================================================================
+    public void setIsPermissionGranted(Boolean isPermissionGranted) {
+        SharedPreferences.Editor editor = sharedPrefs.edit();
+        editor.putBoolean(Constant.IS_PERMISSION_GRANTED, isPermissionGranted);
+        editor.apply();
+    }
+
+    public Boolean getIsPermissionGranted() {
+        return sharedPrefs.getBoolean(Constant.IS_PERMISSION_GRANTED, false);
+    }
+
+    protected void clearIsPermissionGranted() {
+        setIsPermissionGranted(false);
     }
 
 }
