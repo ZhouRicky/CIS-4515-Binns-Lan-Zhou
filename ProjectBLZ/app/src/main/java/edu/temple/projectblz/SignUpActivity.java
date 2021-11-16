@@ -95,35 +95,23 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
     private void createAccount() {
-        // TODO: create account request
-        //  - Implement php (need a set url)
-        //  - Add necessary info to shared preferences (username & session_key if we use it)
         StringRequest stringRequest = new StringRequest(Request.Method.POST, Constant.REGISTER_URL,
                 response -> {
-
-                    // TODO: Refactor code block
 
                     Log.d("JSON", String.valueOf(response));
 
                     try {
                         JSONObject jsonObject = new JSONObject(response);
-                        String status = jsonObject.getString("status");
 
-                        if(status.equals("success")) {
+                        if(jsonObject.getString("status").equals("success")) {
+                            Log.d("JSON", "success: " + jsonObject.getString("message"));
 
-                            Log.d("JSON", "status: " + status);
-                            Toast.makeText(this, status, Toast.LENGTH_SHORT).show();
-
-                            sharedPrefs.setLoggedInUser(username);
-                            sharedPrefs.setIsLoggedIn(true);
-
-                            // TODO: Send this back to login screen or main activity?
+                            Toast.makeText(this, "Account successfully created", Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(this, LoginActivity.class));
                             finish();
+                        } else if(jsonObject.getString("status").equals("error")) {
+                            Log.d("JSON", "error: " + jsonObject.getString("message"));
                         }
-
-                        Toast.makeText(this, status, Toast.LENGTH_SHORT).show();
-                        Log.d("JSON", "status1: " + status);
                     } catch (JSONException e) {
                         e.printStackTrace();
                         Toast.makeText(this, "try/catch error", Toast.LENGTH_SHORT).show();

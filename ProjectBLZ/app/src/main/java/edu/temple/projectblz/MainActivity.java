@@ -2,11 +2,13 @@ package edu.temple.projectblz;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -53,12 +55,10 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
-    public static final String TAG = "Main Activity";
+    //public static final String TAG = "Main Activity";
 
     SharedPrefs sharedPrefs;
-    //String lat = "40.4589";
-    //String lon = "-35.5698";
-    String id = "12";
+
     MapView map;
     IMapController mapController;
     GeoPoint startPoint;
@@ -67,8 +67,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     LocationManager locationManager;
     Location myLocation;
     LocationService myService;
-    double lat;
-    double lon;
+    double lat, lon;
+
+    String username, password, driverId;
 
     TextView speedLimitValue, currentSpeedValue;
 
@@ -95,6 +96,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         speedLimitValue = findViewById(R.id.speedLimitValueTextView);
         currentSpeedValue = findViewById(R.id.currentSpeedValueTextView);
+
+        username = sharedPrefs.getLoggedInUser();
+        password = sharedPrefs.getPassword();
+        driverId = sharedPrefs.getDriverId();
 
         // ================================================================================
         //      Navigation Drawer Code Start
@@ -148,14 +153,30 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         startMarker.setIcon(drawable);
         startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         map.getOverlays().add(startMarker);
-
-        // TODO: might be better to move into menu?
+        
         findViewById(R.id.saveParkButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "Hi", Toast.LENGTH_SHORT).show();
+                AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("Save Parking Location")
+                        .setMessage("Do you want to save your parking location?")
+                        .create();
 
-                savePark();
+                alertDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        savePark();
+                    }
+                });
+
+                alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, "No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+                alertDialog.show();
             }
         });
 
@@ -206,21 +227,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         StringRequest stringRequest = new StringRequest(Request.Method.POST, Constant.PARK_URL,
                 response -> {
 
-                    // TODO: Refactor code block
-
                     Log.d("JSON", String.valueOf(response));
 
                     try {
                         JSONObject jsonObject = new JSONObject(response);
-                        String status = jsonObject.getString("status");
 
-                        if (status.equals("success")) {
-                            // TODO: add local save location functionality if needed
+                        if (jsonObject.getString("status").equals("success")) {
                             Toast.makeText(this, "Location saved", Toast.LENGTH_SHORT).show();
+                            Log.d("JSON", "success: " + jsonObject.getString("message"));
+                        } else if(jsonObject.getString("status").equals("error")) {
+                            Log.d("JSON", "error: " + jsonObject.getString("message"));
                         }
-
-                        Toast.makeText(this, status, Toast.LENGTH_SHORT).show();
-                        Log.d("JSON", "status1: " + status);
                     } catch (JSONException e) {
                         e.printStackTrace();
                         Toast.makeText(this, "try/catch error", Toast.LENGTH_SHORT).show();
@@ -233,9 +250,46 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
                 Map<String, String> params = new HashMap<>();
-                params.put("park_lat", String.valueOf(lat)); //TODO
-                params.put("park_lon", String.valueOf(lon));//TODO
-                params.put("driver_id", id);//TODO
+                params.put("park_lat", String.valueOf(lat));
+                params.put("park_lon", String.valueOf(lon));
+                params.put("driver_id", driverId);
+                return params;
+            }
+        };
+
+        RequestHandler.getInstance(this).addToRequestQueue(stringRequest);
+    }
+
+    private void parkingHistory() {
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, Constant.HISTORY_URL,
+                response -> {
+
+                    // TODO: we will need a JSONArray with all the parking locations for specified driverId
+                    Log.d("JSON", String.valueOf(response));
+
+                    try {
+                        JSONObject jsonObject = new JSONObject(response);
+
+                        if (jsonObject.getString("status").equals("success")) {
+                            Log.d("JSON", "success: " + jsonObject.getString("message"));
+                        } else if(jsonObject.getString("status").equals("error")) {
+                            Log.d("JSON", "error: " + jsonObject.getString("message"));
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Toast.makeText(this, "try/catch error", Toast.LENGTH_SHORT).show();
+                    }
+                },
+                error -> {
+                    VolleyLog.d("Error", "Error: " + error.getMessage());
+                }) {
+            @Nullable
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("username", username);
+                params.put("password", password);
+                params.put("driver_id", driverId);
                 return params;
             }
         };
@@ -367,8 +421,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // TODO: add menu items and functionality to each menu item
         switch(item.getItemId()) {
-            case R.id.nav_item_1:
-                Toast.makeText(this, "Clicked Item 1", Toast.LENGTH_SHORT).show();
+            case R.id.nav_parking_history:
+                parkingHistory();
                 break;
             case R.id.nav_item_2:
                 Toast.makeText(this, "Clicked item 2", Toast.LENGTH_SHORT).show();

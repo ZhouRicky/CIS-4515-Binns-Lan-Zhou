@@ -2,8 +2,6 @@ package edu.temple.projectblz;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -20,10 +18,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
-import com.android.volley.RequestQueue;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
@@ -65,7 +61,6 @@ public class LoginActivity extends AppCompatActivity {
         handleSSLHandshake();
         checkPermission();
         viewInitialization();
-//        redirectIfLoggedIn(); // TODO: uncomment when logout button is implemented
 
         // log in button functionality
         loginButton.setOnClickListener(new View.OnClickListener() {
@@ -96,9 +91,7 @@ public class LoginActivity extends AppCompatActivity {
         signUpTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // TODO: when user returns from SignUpActivity, the application will be changed to redirect to MainActivity when php gets implemented
-                Intent intent = new Intent(view.getContext(), SignUpActivity.class);
-                startActivity(intent);
+                startActivity(new Intent(view.getContext(), SignUpActivity.class));
             }
         });
     }
@@ -107,9 +100,10 @@ public class LoginActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         checkPermission();
-        redirectIfLoggedIn(); // TODO: check if working properly
+        redirectIfLoggedIn();
     }
 
+    // TODO: relocate to MainActivity
     // uses dexter library to check for permissions at runtime
     private void checkPermission() {
         Dexter.withContext(this).withPermissions(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -148,16 +142,9 @@ public class LoginActivity extends AppCompatActivity {
 
 
     private void login() {
-        // TODO: log in request
-        //  - Implement php verifying credential (need a set url)
-        //  - Add necessary info to shared preferences (username & session_key if we use it)
         StringRequest stringRequest = new StringRequest(Request.Method.POST, Constant.LOGIN_URL,
                 response -> {
 
-                    // TODO: problem with JSON response
-                    //  gives 2 objects {"nofault":"no error"}
-                    //    {"driverId":"13","status":"success","message":"User successfully logged in"}
-                    //  figure out how to get rid of {"nofault":"no error"} object
                     Log.d("JSON", String.valueOf(response));
 
                     try {
@@ -169,6 +156,8 @@ public class LoginActivity extends AppCompatActivity {
                             Log.d("JSON", "success: " + jsonObject.getString("message"));
 
                             sharedPrefs.setLoggedInUser(username);
+                            sharedPrefs.setPassword(password);
+                            sharedPrefs.setDriverId(jsonObject.getString("driverId"));
                             sharedPrefs.setIsLoggedIn(true);
 
                             startActivity(new Intent(this, MainActivity.class));
@@ -230,7 +219,9 @@ public class LoginActivity extends AppCompatActivity {
     // redirect user to main activity if not explicitly logged out
     // TODO: check if working properly
     private void redirectIfLoggedIn() {
-        if(!sharedPrefs.getLoggedInUser().equals(Constant.SHARED_PREFS_DEFAULT_STRING) && sharedPrefs.getIsLoggedIn().equals(true)) {
+        if(!sharedPrefs.getLoggedInUser().equals(Constant.SHARED_PREFS_DEFAULT_STRING)
+                && !sharedPrefs.getDriverId().equals(Constant.SHARED_PREFS_DEFAULT_STRING)
+                && sharedPrefs.getIsLoggedIn().equals(true)) {
             startActivity(new Intent(this, MainActivity.class));
             finish();
         }
