@@ -26,5 +26,8 @@
     <string name="nav_parking_history">Parking History</string>
     <string name="item_2">Item 2</string>
     <string name="nav_logout">Logout</string>
+    <string name="closeItemBtn">close parking list</string>
+    <string name="close_button">Close</string>
+    <string name="image_view">Delete button</string>
     <!---->
 </resources>
