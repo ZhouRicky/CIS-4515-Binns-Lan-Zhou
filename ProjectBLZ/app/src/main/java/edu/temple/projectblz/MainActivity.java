@@ -223,6 +223,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             getGPS();
     }
 
+    /**this function saves the drivers parking location*/
     private void savePark() {
         StringRequest stringRequest = new StringRequest(Request.Method.POST, Constant.PARK_URL,
                 response -> {
@@ -272,6 +273,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                         if (jsonObject.getString("status").equals("success")) {
                             Log.d("JSON", "success: " + jsonObject.getString("message"));
+                            startActivity(new Intent(this, ParkingItemsActivity.class));
+                            finish();
                         } else if(jsonObject.getString("status").equals("error")) {
                             Log.d("JSON", "error: " + jsonObject.getString("message"));
                         }
