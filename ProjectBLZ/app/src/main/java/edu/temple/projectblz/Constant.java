@@ -50,7 +50,8 @@ public class Constant {
         public static final String ParkingLatitude = "park_lat";
         public static final String ParkingLongitude = "park_lon";
         public static final String ParkingDriverID= "driver_id";
-        
+        //Constant for RequestCode_Permission_WriteSetting
+        public static final int RequestCode_Permission_WriteSetting = 100;
 
 
 

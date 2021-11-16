@@ -20,6 +20,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -99,7 +100,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         sharedPrefs = new SharedPrefs(this);
 
         //request location & writting to system permission
-        RequestPermission();
         //initialization of the sensor and manager
         Initialization();
 
@@ -138,6 +138,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // ================================================================================
 
         //map initialization
+        RequestPermission();
+
         map = (MapView) findViewById(R.id.map);
         map.setTileSource(TileSourceFactory.MAPNIK);
         map.setBuiltInZoomControls(true);
@@ -150,9 +152,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mapController.setZoom(19.5);
             startMarker = new Marker(map);
             startMarker.setPosition(startPoint);
-        }
+            startMarker.setTitle("You are here");
 
-        startMarker.setTitle("You are here");
+        }
         drawable = getResources().getDrawable(R.drawable.red_car_marker);
         startMarker.setIcon(drawable);
         startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
@@ -163,7 +165,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void onClick(View v) {
                 Log.d("t", "I CAME HERE");
-                    savePark();
+                savePark();
                 Log.d("t", "I CAME HERE2");
             }
         });
@@ -194,8 +196,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         else {
             getGPS();
         }
-        if(!isWriteSettingPermission()){
-            requestPermissions(new String[]{Manifest.permission.WRITE_SETTINGS}, Constant.RequestCode_WriteSetting);
+        boolean value;
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            value = Settings.System.canWrite(getApplicationContext());
+            if(!value){
+                Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+                intent.setData(Uri.parse("package:" + getApplicationContext().getPackageName()));
+                startActivityForResult(intent,Constant.RequestCode_Permission_WriteSetting);
+            }
         }
     }
 
@@ -227,6 +235,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void onStop(){
         super.onStop();
         getEndService();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode==Constant.RequestCode_Permission_WriteSetting){
+            if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M){
+                boolean value = Settings.System.canWrite(getApplicationContext());
+                if(!value){
+                    Toast.makeText(this,"Permission is not granted",Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
     }
 
     /**check if user gave permission*/
@@ -459,7 +480,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         else if(brightness > Constant.Brightness_Max){
             brightness = Constant.Brightness_Max;
         }
-
+        Log.d("Brightness Test","Brightness is: "+ brightness);
         ContentResolver contentResolver = getApplicationContext().getContentResolver();
         Settings.System.putInt(contentResolver, Settings.System.SCREEN_BRIGHTNESS,brightness);
 
