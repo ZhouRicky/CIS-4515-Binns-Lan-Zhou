@@ -14,7 +14,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -48,6 +47,11 @@ import com.android.volley.Request;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
 import com.google.android.material.navigation.NavigationView;
+import com.karumi.dexter.Dexter;
+import com.karumi.dexter.MultiplePermissionsReport;
+import com.karumi.dexter.PermissionToken;
+import com.karumi.dexter.listener.PermissionRequest;
+import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -59,12 +63,10 @@ import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, SensorEventListener {
-
-    //public static final String TAG = "Main Activity";
 
     SharedPrefs sharedPrefs;
 
@@ -88,12 +90,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     //Initializing a sensor, sensormanager
     SensorManager sensorManager;
-    Sensor LightSensor, AcceleroMeterSensor;
-    Context context;
+    Sensor LightSensor,AccelerometerSensor;
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -103,19 +102,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Configuration.getInstance().load(getApplication(), PreferenceManager.getDefaultSharedPreferences(getApplication()));
         sharedPrefs = new SharedPrefs(this);
 
-        //request location & writting to system permission
+
+        //request location & writing to system permission
         //initialization of the sensor and manager
         Initialization();
 
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, new IntentFilter("driverMood"));
-        //TODO Get all of those into Initialization(). easier to read
+        // TODO: Get all of those into Initialization(). easier to read
+        //  RZ comment: maybe
 
         createNotificationChannel();
 
         getStartService();
 
         locationManager = getSystemService(LocationManager.class);
-
+        checkPermission();
         speedLimitValue = findViewById(R.id.speedLimitValueTextView);
         currentSpeedValue = findViewById(R.id.currentSpeedValueTextView);
 
@@ -148,7 +149,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // ================================================================================
 
         //map initialization
-        RequestPermission();
 
         map = (MapView) findViewById(R.id.map);
         map.setTileSource(TileSourceFactory.MAPNIK);
@@ -163,13 +163,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             startMarker = new Marker(map);
             startMarker.setPosition(startPoint);
             startMarker.setTitle("You are here");
-
         }
+
         drawable = getResources().getDrawable(R.drawable.red_car_marker);
         startMarker.setIcon(drawable);
         startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         map.getOverlays().add(startMarker);
-        
+
         findViewById(R.id.saveParkButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -198,53 +198,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     }
 
-    /*initialization of
-           1.sensor Manager
-           2.Light Sensor
-           3.AcceleroMeterSensor
-     */
-    private void Initialization() {
-        sensorManager             = (SensorManager) getSystemService(Service.SENSOR_SERVICE);
-        LightSensor               = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
-        AcceleroMeterSensor       = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-    }
-
-
-    /*
-        Request Permission at starting of the activity
-            * Location Permission
-            * Write Setting Permission
-     */
-    private void RequestPermission() {
-        if  (!isGPSPermission()){
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, Constant.RequestCode_FineLocation);
-        }
-        else {
-            getGPS();
-        }
-        boolean value;
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-            value = Settings.System.canWrite(getApplicationContext());
-            if(!value){
-                Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
-                intent.setData(Uri.parse("package:" + getApplicationContext().getPackageName()));
-                startActivityForResult(intent,Constant.RequestCode_Permission_WriteSetting);
-            }
-        }
-    }
-
     /**
      * this will refresh the osmdroid configuration on resuming
      * Registering Listener
      */
     public void onResume() {
         super.onResume();
+        checkPermission();
         map.onResume();
+
+        // TODO: this should also go into onCreate?
         //register light sensor and accelerometer sensor
-
-        sensorManager.registerListener(this,LightSensor,sensorManager.SENSOR_DELAY_NORMAL);
-        sensorManager.registerListener(this,AcceleroMeterSensor,sensorManager.SENSOR_DELAY_NORMAL);
-
+        sensorManager.registerListener(this, LightSensor, sensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(this, AccelerometerSensor, sensorManager.SENSOR_DELAY_NORMAL);
     }
 
     /**
@@ -263,47 +229,60 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         getEndService();
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode==Constant.RequestCode_Permission_WriteSetting){
-            if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M){
-                boolean value = Settings.System.canWrite(getApplicationContext());
-                if(!value){
-                    Toast.makeText(this,"Permission is not granted",Toast.LENGTH_SHORT).show();
-                }
-            }
+    /*initialization of
+           1.sensor Manager
+           2.Light Sensor
+           3.AccelerometerSensor
+     */
+    private void Initialization() {
+        sensorManager             = (SensorManager) getSystemService(Service.SENSOR_SERVICE);
+        LightSensor               = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+        AccelerometerSensor       = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+    }
+
+    // uses dexter library to check for permissions at runtime
+    private void checkPermission() {
+        Dexter.withContext(this).withPermissions(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+                .withListener(new MultiplePermissionsListener() {
+                    @SuppressLint("MissingPermission")
+                    @Override
+                    public void onPermissionsChecked(MultiplePermissionsReport multiplePermissionsReport) {
+                        if(multiplePermissionsReport.areAllPermissionsGranted()) {
+                            sharedPrefs.setIsPermissionGranted(true);
+                            myLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                        }
+
+                        if(multiplePermissionsReport.getDeniedPermissionResponses().size() > 0){
+                            sharedPrefs.clearIsPermissionGranted();
+                            Toast.makeText(MainActivity.this, "All permissions are required to continue", Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent();
+                            intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                            Uri uri = Uri.fromParts("package", getPackageName(), "");
+                            intent.setData(uri);
+                            startActivity(intent);
+                        }
+                    }
+
+                    @Override
+                    public void onPermissionRationaleShouldBeShown(List<PermissionRequest> list, PermissionToken permissionToken) {
+                        permissionToken.continuePermissionRequest();
+                    }
+                }).check();
+
+        // checks for WRITE_SETTINGS permission
+        if(!Settings.System.canWrite(this)) {
+            Toast.makeText(this, "Modify system settings must be allowed", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent();
+            intent.setAction(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+            Uri uri = Uri.fromParts("package", getPackageName(), "");
+            intent.setData(uri);
+            startActivity(intent);
         }
     }
 
-    /**check if user gave permission*/
-    private boolean isGPSPermission(){
-        return checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
-    }
+    // TODO: Implement Alert notify brightness caution
+    //  RZ comment: I changed the permission check code, so see where this can fit
 
-    //Check if User have WriteSetting PErmission
-    private boolean isWriteSettingPermission(){
-        return checkSelfPermission(Manifest.permission.WRITE_SETTINGS) == PackageManager.PERMISSION_GRANTED;
-    }
-
-
-    /**if permission is granted, get last known gps location*/
-    @SuppressLint("MissingPermission")
-    private void getGPS(){
-        if (isGPSPermission())
-            myLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-    }
-
-    /**check the users response for gps permission*/
-    @Override
-    public void onRequestPermissionsResult (int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == Constant.RequestCode_FineLocation && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-            getGPS();
-        if (requestCode == Constant.RequestCode_WriteSetting && grantResults[0] != PackageManager.PERMISSION_GRANTED){
-            //TODO Implement Alert notify brightness caution
-        }
-    }
 
     /**this function saves the drivers parking location*/
     private void savePark() {
@@ -526,7 +505,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
         if(sensorEvent.sensor.getType()==Sensor.TYPE_ACCELEROMETER) {
-            //TODO Implement feature of accelerometer based of floating bar
+            // TODO: Implement feature of accelerometer based of floating bar
         }
         //Implemented simple algorithm for light sensor
         if(sensorEvent.sensor.getType()==Sensor.TYPE_LIGHT){
@@ -536,7 +515,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void setBrightness(int brightness) {
-        //TODO Implement Algorithm for brightness control
+        // TODO: Implement Algorithm for brightness control
+        //  RZ comment: this doesn't really do anything rn
 
         if(brightness < Constant.Brightness_Zero){
             brightness = Constant.Brightness_Zero;
@@ -552,6 +532,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int i) {
-        //TODO override for interface, would have to implement if needed for accerlerometer sensor
+        // TODO: override for interface, would have to implement if needed for accerlerometer sensor
     }
 }
