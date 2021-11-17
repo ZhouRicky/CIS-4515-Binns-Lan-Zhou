@@ -3,14 +3,13 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <item
-        android:id="@+id/nav_parking_history"
-        android:title="@string/nav_parking_history" />
-
-    <item
-        android:id="@+id/nav_item_2"
+        android:id="@+id/nav_last_parked"
         android:title="@string/item_2" />
 
     <!--keep logout at bottom of list-->
+    <item
+        android:id="@+id/nav_parking_history"
+        android:title="@string/nav_parking_history" />
     <item
         android:id="@+id/nav_logout"
         android:title="@string/nav_logout" />
