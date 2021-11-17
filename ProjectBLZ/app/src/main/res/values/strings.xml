@@ -26,8 +26,9 @@
     <string name="nav_parking_history">Parking History</string>
     <string name="item_2">Item 2</string>
     <string name="nav_logout">Logout</string>
-    <string name="closeItemBtn">close parking list</string>
+    <!--strings used for activity_parking_items.xml-->
     <string name="close_button">Close</string>
     <string name="image_view">Delete button</string>
+    <string name="delete_button_desc">This will delete corresponding location</string>
     <!---->
 </resources>

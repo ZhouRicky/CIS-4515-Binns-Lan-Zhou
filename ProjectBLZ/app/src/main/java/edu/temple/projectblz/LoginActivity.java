@@ -103,10 +103,9 @@ public class LoginActivity extends AppCompatActivity {
         redirectIfLoggedIn();
     }
 
-    // TODO: relocate to MainActivity
     // uses dexter library to check for permissions at runtime
     private void checkPermission() {
-        Dexter.withContext(this).withPermissions(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.READ_EXTERNAL_STORAGE)
+        Dexter.withContext(this).withPermissions(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
                 .withListener(new MultiplePermissionsListener() {
             @Override
             public void onPermissionsChecked(MultiplePermissionsReport multiplePermissionsReport) {
@@ -129,6 +128,16 @@ public class LoginActivity extends AppCompatActivity {
                 permissionToken.continuePermissionRequest();
             }
         }).check();
+
+        // checks for WRITE_SETTINGS permission
+        if(!Settings.System.canWrite(this)) {
+            Toast.makeText(LoginActivity.this, "Modify system settings must be allowed", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent();
+            intent.setAction(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+            Uri uri = Uri.fromParts("package", getPackageName(), "");
+            intent.setData(uri);
+            startActivity(intent);
+        }
     }
 
     // initialize necessary views

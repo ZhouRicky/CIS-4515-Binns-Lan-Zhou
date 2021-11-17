@@ -1,5 +1,15 @@
 package edu.temple.projectblz;
 
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.AlertDialog;
@@ -14,24 +24,29 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 public class ParkingItemsActivity extends AppCompatActivity {
-
+    private RecyclerView recyclerView;
+    ParkingAdapter parkingAdapter;
     ArrayList<LocationObject> listItem = new ArrayList<>();
-    ListView listView;
-    BaseAdapter adapter;
     ImageView imageView;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_parking_items);
-        setTitle("Parking History");
-        listView = findViewById(R.id.listView);
+
+        setTitle("Parking Location History");
+
+        recyclerView = findViewById(R.id.parkingItemsRecyclerView);
+        setAdapter();
+        
         imageView = findViewById(R.id.imageView);
 
         listItem = (ArrayList<LocationObject>) getIntent().getSerializableExtra(Constant.LOCATIONLIST);
@@ -53,6 +68,7 @@ public class ParkingItemsActivity extends AppCompatActivity {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
 
             /**confirm if the driver wants to navigate to the address found in the list*/
             new AlertDialog.Builder(this)
@@ -77,8 +93,17 @@ public class ParkingItemsActivity extends AppCompatActivity {
             startActivity(new Intent(ParkingItemsActivity.this, MainActivity.class));
             finish();
         });
-
     }
+
+
+    private void setAdapter() {
+        parkingAdapter = new ParkingAdapter(this, itemsList);
+        RecyclerView.LayoutManager layoutManager =new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.setAdapter(parkingAdapter);
+    }
+}
 
     /**this function gets the actual address form the lat and lon coordinates*/
     private String showAddress(double lat, double lon) throws IOException {
@@ -106,3 +131,4 @@ public class ParkingItemsActivity extends AppCompatActivity {
         return address;
     }
 }
+
