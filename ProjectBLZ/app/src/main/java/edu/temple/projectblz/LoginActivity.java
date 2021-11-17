@@ -1,6 +1,7 @@
 package edu.temple.projectblz;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -28,9 +29,18 @@ import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -40,8 +50,7 @@ public class LoginActivity extends AppCompatActivity {
     EditText usernameEditText, passwordEditText;
     Button loginButton;
 
-    boolean isLocationPermissionGranted;
-    String username, password, sessionKey;
+    String username, password;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,10 +58,9 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         sharedPrefs = new SharedPrefs(this);
-
+        handleSSLHandshake();
         checkPermission();
         viewInitialization();
-//        redirectIfLoggedIn(); // TODO: uncomment when logout button is implemented
 
         // log in button functionality
         loginButton.setOnClickListener(new View.OnClickListener() {
@@ -67,8 +75,8 @@ public class LoginActivity extends AppCompatActivity {
                     if(username.isEmpty() || password.isEmpty()) {
                         statusTextView.setText(Constant.INCORRECT_INFO);
                     } else {
-                        if(!isLocationPermissionGranted) {
-                            Toast.makeText(LoginActivity.this, "Please enable location permissions", Toast.LENGTH_SHORT).show();
+                        if(!sharedPrefs.getIsPermissionGranted()) {
+                            Toast.makeText(LoginActivity.this, "Please enable all necessary permissions", Toast.LENGTH_SHORT).show();
                         } else {
                             login();
                         }
@@ -83,9 +91,7 @@ public class LoginActivity extends AppCompatActivity {
         signUpTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // TODO: when user returns from SignUpActivity, the application will be changed to redirect to MainActivity when php gets implemented
-                Intent intent = new Intent(view.getContext(), SignUpActivity.class);
-                startActivity(intent);
+                startActivity(new Intent(view.getContext(), SignUpActivity.class));
             }
         });
     }
@@ -94,17 +100,18 @@ public class LoginActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         checkPermission();
-//        redirectIfLoggedIn(); // TODO: uncomment when logout button is implemented
+        redirectIfLoggedIn();
     }
 
+    // TODO: relocate to MainActivity
     // uses dexter library to check for permissions at runtime
     private void checkPermission() {
-        Dexter.withContext(this).withPermissions(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION).withListener(new MultiplePermissionsListener() {
+        Dexter.withContext(this).withPermissions(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.READ_EXTERNAL_STORAGE)
+                .withListener(new MultiplePermissionsListener() {
             @Override
             public void onPermissionsChecked(MultiplePermissionsReport multiplePermissionsReport) {
                 if(multiplePermissionsReport.areAllPermissionsGranted()) {
-                    isLocationPermissionGranted = true;
-                    sharedPrefs.setAccessLocationPermissionGranted(true);
+                    sharedPrefs.setIsPermissionGranted(true);
                 }
 
                 if(multiplePermissionsReport.getDeniedPermissionResponses().size() > 0){
@@ -135,35 +142,29 @@ public class LoginActivity extends AppCompatActivity {
 
 
     private void login() {
-        // TODO: log in request
-        //  - Implement php verifying credential (need a set url)
-        //  - Add necessary info to shared preferences (username & session_key if we use it)
-        //final String URL = "http://192.168.1.78/login.php";//"https://cis-linux2.temple.edu/~tul58076/login.php";
-        //Constant loginPhp
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, Constant.LoginPhp,
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, Constant.LOGIN_URL,
                 response -> {
 
-//                    Log.d("JSON", String.valueOf(response));
+                    Log.d("JSON", String.valueOf(response));
 
                     try {
                         JSONObject jsonObject = new JSONObject(response);
-                        String status = jsonObject.getString("status");
 
-                        if(status.equals("success")) {
-//                            sessionKey = jsonObject.getString("session_key"); // TODO: we probably need a session key
+                        Log.d("JSONObject", jsonObject.toString());
 
-                            Log.d("JSON", "status: " + status);
-                            Toast.makeText(this, status, Toast.LENGTH_SHORT).show();
+                        if(jsonObject.getString("status").equals("success")) {
+                            Log.d("JSON", "success: " + jsonObject.getString("message"));
 
                             sharedPrefs.setLoggedInUser(username);
-//                            sharedPrefs.setSessionKey(sessionKey);
+                            sharedPrefs.setPassword(password);
+                            sharedPrefs.setDriverId(jsonObject.getString("driverId"));
+                            sharedPrefs.setIsLoggedIn(true);
 
                             startActivity(new Intent(this, MainActivity.class));
                             finish();
+                        } else if(jsonObject.getString("status").equals("error")) {
+                            Log.d("JSON", "error: " + jsonObject.getString("message"));
                         }
-
-                        Toast.makeText(this, status, Toast.LENGTH_SHORT).show();
-                        Log.d("TAG", "resultKey1 " + status);
                     } catch (JSONException e) {
                         e.printStackTrace();
                         Toast.makeText(this, "try/catch error", Toast.LENGTH_SHORT).show();
@@ -185,13 +186,44 @@ public class LoginActivity extends AppCompatActivity {
         RequestHandler.getInstance(this).addToRequestQueue(stringRequest);
     }
 
-    // redirect user to main activity
-    // TODO: uncomment when logout button is implemented
-    //  - need to add session_key if used
-//    private void redirectIfLoggedIn() {
-//        if(!sharedPrefs.getLoggedInUser().equals(Constant.SHARED_PREFS_DEFAULT_STRING)) {
-//            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-//            startActivity(intent);
-//        }
-//    }
+    @SuppressLint("TrulyRandom")
+    public static void handleSSLHandshake() {
+        try {
+            TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
+                public X509Certificate[] getAcceptedIssuers() {
+                    return new X509Certificate[0];
+                }
+
+                @Override
+                public void checkClientTrusted(X509Certificate[] certs, String authType) {
+                }
+
+                @Override
+                public void checkServerTrusted(X509Certificate[] certs, String authType) {
+                }
+            }};
+
+            SSLContext sc = SSLContext.getInstance("SSL");
+            sc.init(null, trustAllCerts, new SecureRandom());
+            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+            HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
+                @Override
+                public boolean verify(String arg0, SSLSession arg1) {
+                    return true;
+                }
+            });
+        } catch (Exception ignored) {
+        }
+    }
+
+    // redirect user to main activity if not explicitly logged out
+    // TODO: check if working properly
+    private void redirectIfLoggedIn() {
+        if(!sharedPrefs.getLoggedInUser().equals(Constant.SHARED_PREFS_DEFAULT_STRING)
+                && !sharedPrefs.getDriverId().equals(Constant.SHARED_PREFS_DEFAULT_STRING)
+                && sharedPrefs.getIsLoggedIn().equals(true)) {
+            startActivity(new Intent(this, MainActivity.class));
+            finish();
+        }
+    }
 }
