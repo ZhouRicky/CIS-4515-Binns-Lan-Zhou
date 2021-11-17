@@ -24,7 +24,6 @@ public class LocationService extends Service {
     //Initialization of the location service based off TA's version
 
     //Initialization of the Location Manager, Listener and Notification
-    private static final int FOREGROUND_SERVICE_ID = 1;
     private LocationManager locationManager;
     private LocationListener listener;
     private Notification notification;
@@ -89,7 +88,7 @@ public class LocationService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED){
-            startForeground(FOREGROUND_SERVICE_ID, notification);
+            startForeground(Constant.FOREGROUND_SERVICE_ID, notification);
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
                     10, 1, listener);
             //TODO Initializing the distance based of 1 meter and 10 ms but would need to change if needed
@@ -123,7 +122,7 @@ public class LocationService extends Service {
                 .setContentTitle("Driving started")
                 .setContentText("You have just started location services")
                 .build();
-        startForeground(FOREGROUND_SERVICE_ID, notification);
+        startForeground(Constant.FOREGROUND_SERVICE_ID, notification);
     }
 
 

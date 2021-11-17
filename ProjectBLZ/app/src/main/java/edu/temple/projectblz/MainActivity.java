@@ -5,8 +5,10 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -14,12 +16,18 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -52,8 +60,9 @@ import org.osmdroid.views.overlay.Marker;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, SensorEventListener {
 
     //public static final String TAG = "Main Activity";
 
@@ -77,7 +86,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     ActionBarDrawerToggle toggle;
     NavigationView navigationView;
 
+    //Initializing a sensor, sensormanager
+    SensorManager sensorManager;
+    Sensor LightSensor, AcceleroMeterSensor;
+    Context context;
+
     @RequiresApi(api = Build.VERSION_CODES.O)
+
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,9 +103,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Configuration.getInstance().load(getApplication(), PreferenceManager.getDefaultSharedPreferences(getApplication()));
         sharedPrefs = new SharedPrefs(this);
 
+        //request location & writting to system permission
+        //initialization of the sensor and manager
+        Initialization();
+
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, new IntentFilter("driverMood"));
+        //TODO Get all of those into Initialization(). easier to read
 
         createNotificationChannel();
+
         getStartService();
 
         locationManager = getSystemService(LocationManager.class);
@@ -125,19 +147,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         //      Navigation Drawer Code End
         // ================================================================================
 
+        //map initialization
+        RequestPermission();
 
         map = (MapView) findViewById(R.id.map);
         map.setTileSource(TileSourceFactory.MAPNIK);
-
         map.setBuiltInZoomControls(true);
         map.setMultiTouchControls(true);
-
-        if  (!isGPSPermission()){
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 123);
-        }
-        else{
-            getGPS();
-        }
 
         mapController = map.getController();
         if(myLocation!=null) {
@@ -146,9 +162,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mapController.setZoom(19.5);
             startMarker = new Marker(map);
             startMarker.setPosition(startPoint);
-        }
+            startMarker.setTitle("You are here");
 
-        startMarker.setTitle("You are here");
+        }
         drawable = getResources().getDrawable(R.drawable.red_car_marker);
         startMarker.setIcon(drawable);
         startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
@@ -182,20 +198,64 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     }
 
+    /*initialization of
+           1.sensor Manager
+           2.Light Sensor
+           3.AcceleroMeterSensor
+     */
+    private void Initialization() {
+        sensorManager             = (SensorManager) getSystemService(Service.SENSOR_SERVICE);
+        LightSensor               = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+        AcceleroMeterSensor       = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+    }
+
+
+    /*
+        Request Permission at starting of the activity
+            * Location Permission
+            * Write Setting Permission
+     */
+    private void RequestPermission() {
+        if  (!isGPSPermission()){
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, Constant.RequestCode_FineLocation);
+        }
+        else {
+            getGPS();
+        }
+        boolean value;
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            value = Settings.System.canWrite(getApplicationContext());
+            if(!value){
+                Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+                intent.setData(Uri.parse("package:" + getApplicationContext().getPackageName()));
+                startActivityForResult(intent,Constant.RequestCode_Permission_WriteSetting);
+            }
+        }
+    }
+
     /**
      * this will refresh the osmdroid configuration on resuming
+     * Registering Listener
      */
     public void onResume() {
         super.onResume();
         map.onResume();
+        //register light sensor and accelerometer sensor
+
+        sensorManager.registerListener(this,LightSensor,sensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(this,AcceleroMeterSensor,sensorManager.SENSOR_DELAY_NORMAL);
+
     }
 
     /**
      * this will enable osmdroid to be refreshed
+     * UnregisterListener
      */
     public void onPause() {
         super.onPause();
         map.onPause();
+        //onpause unregister the sensor
+        sensorManager.unregisterListener(this);
     }
 
     public void onStop(){
@@ -203,10 +263,29 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         getEndService();
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode==Constant.RequestCode_Permission_WriteSetting){
+            if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M){
+                boolean value = Settings.System.canWrite(getApplicationContext());
+                if(!value){
+                    Toast.makeText(this,"Permission is not granted",Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+    }
+
     /**check if user gave permission*/
     private boolean isGPSPermission(){
         return checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
     }
+
+    //Check if User have WriteSetting PErmission
+    private boolean isWriteSettingPermission(){
+        return checkSelfPermission(Manifest.permission.WRITE_SETTINGS) == PackageManager.PERMISSION_GRANTED;
+    }
+
 
     /**if permission is granted, get last known gps location*/
     @SuppressLint("MissingPermission")
@@ -219,8 +298,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void onRequestPermissionsResult (int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 123 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+        if (requestCode == Constant.RequestCode_FineLocation && grantResults[0] == PackageManager.PERMISSION_GRANTED)
             getGPS();
+        if (requestCode == Constant.RequestCode_WriteSetting && grantResults[0] != PackageManager.PERMISSION_GRANTED){
+            //TODO Implement Alert notify brightness caution
+        }
     }
 
     /**this function saves the drivers parking location*/
@@ -439,5 +521,37 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         drawerLayout.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent sensorEvent) {
+        if(sensorEvent.sensor.getType()==Sensor.TYPE_ACCELEROMETER) {
+            //TODO Implement feature of accelerometer based of floating bar
+        }
+        //Implemented simple algorithm for light sensor
+        if(sensorEvent.sensor.getType()==Sensor.TYPE_LIGHT){
+            setBrightness((int)sensorEvent.values[0]);
+        }
+
+    }
+
+    private void setBrightness(int brightness) {
+        //TODO Implement Algorithm for brightness control
+
+        if(brightness < Constant.Brightness_Zero){
+            brightness = Constant.Brightness_Zero;
+        }
+        else if(brightness > Constant.Brightness_Max){
+            brightness = Constant.Brightness_Max;
+        }
+        Log.d("Brightness Test","Brightness is: "+ brightness);
+        ContentResolver contentResolver = getApplicationContext().getContentResolver();
+        Settings.System.putInt(contentResolver, Settings.System.SCREEN_BRIGHTNESS,brightness);
+
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int i) {
+        //TODO override for interface, would have to implement if needed for accerlerometer sensor
     }
 }
