@@ -16,6 +16,7 @@ import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -41,6 +42,7 @@ import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
 import com.google.android.material.navigation.NavigationView;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.osmdroid.api.IMapController;
@@ -50,6 +52,7 @@ import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -58,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     //public static final String TAG = "Main Activity";
 
     SharedPrefs sharedPrefs;
-
+    ArrayList<LocationObject> locationList;
     MapView map;
     IMapController mapController;
     GeoPoint startPoint;
@@ -93,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         getStartService();
 
         locationManager = getSystemService(LocationManager.class);
-
+        locationList = new ArrayList<>();
         speedLimitValue = findViewById(R.id.speedLimitValueTextView);
         currentSpeedValue = findViewById(R.id.currentSpeedValueTextView);
 
@@ -234,6 +237,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         JSONObject jsonObject = new JSONObject(response);
 
                         if (jsonObject.getString("status").equals("success")) {
+                            sharedPrefs.setLatParked(lat);
+                            sharedPrefs.setLonParked(lon);
                             Toast.makeText(this, "Location saved", Toast.LENGTH_SHORT).show();
                             Log.d("JSON", "success: " + jsonObject.getString("message"));
                         } else if(jsonObject.getString("status").equals("error")) {
@@ -272,8 +277,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         JSONObject jsonObject = new JSONObject(response);
 
                         if (jsonObject.getString("status").equals("success")) {
-                            Log.d("JSON", "success: " + jsonObject.getString("message"));
-                            startActivity(new Intent(this, ParkingItemsActivity.class));
+                            JSONArray jsonArray = jsonObject.getJSONArray("data");
+                            getArraylist(jsonArray);
+
+                            Intent newIntent = new Intent(MainActivity.this, ParkingItemsActivity.class);
+                            newIntent.putExtra(Constant.LOCATIONLIST, locationList);
+                            startActivity(newIntent);
                             finish();
                         } else if(jsonObject.getString("status").equals("error")) {
                             Log.d("JSON", "error: " + jsonObject.getString("message"));
@@ -307,7 +316,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             myService = ((LocationService.MyLocalBinder) service).getService();
-            // myService.registerActivity(LoggedInActivity.this);
         }
 
         @Override
@@ -396,6 +404,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     };
 
+        /**populate an arraylist with database parking info*/
+        private void getArraylist(JSONArray list) throws JSONException {
+            final int arraySize = list.length();
+            for(int i = 0; i < arraySize; i++) {
+                JSONObject object = list.getJSONObject(i);
+                locationList.add(new LocationObject(object.getDouble(Constant.LATITUDE), object.getDouble(Constant.LONGITUDE), object.getInt(Constant.PARK_ID), object.getString(Constant.CREATED_AT)));
+            }
+            //Log.d("mtag", "came here5 " + getIntent().getParcelableArrayListExtra(Constant.LOCATIONLIST));
+        }
+
 
     // override the onOptionsItemSelected()
     // function to implement
@@ -424,11 +442,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // TODO: add menu items and functionality to each menu item
         switch(item.getItemId()) {
+            case R.id.nav_last_parked:
+                //Toast.makeText(this, "Clicked item 2", Toast.LENGTH_SHORT).show();
+
+                if(sharedPrefs.getLonParked()!=null) {
+                    Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
+                    Uri.parse(Constant.GOOGLE_MAP_URL + Double.valueOf(sharedPrefs.getLatParked()) + "," + Double.valueOf(sharedPrefs.getLonParked())));
+                    startActivity(intent);
+                }
+                else{
+                    Toast.makeText(this, "No recent parked location, please check parking history", Toast.LENGTH_SHORT).show();
+                }
+                break;
             case R.id.nav_parking_history:
                 parkingHistory();
-                break;
-            case R.id.nav_item_2:
-                Toast.makeText(this, "Clicked item 2", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.nav_logout:
                 sharedPrefs.clearAllUserSettings();

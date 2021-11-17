@@ -7,10 +7,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Adapter;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -18,30 +20,24 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 public class ParkingAdapter extends BaseAdapter {
-    private final String MESSAGE_KEY = "message";
     private Context context;
-    private ArrayList<String> title1;
+    private ArrayList<LocationObject> listItem;
     SharedPreferences.Editor editor;
     SharedPreferences prefs;
 
-    public ParkingAdapter (Context context, ArrayList<String> title1) {
+    public ParkingAdapter (Context context, ArrayList<LocationObject> listItem) {
         this.context = context;
-        this.title1 = title1;
-        title1.add("user1");
-        title1.add("user2");
-        title1.add("user3");
-        title1.add("user4");
-
+        this.listItem = listItem;
     }
 
     @Override
     public int getCount() {
-        return title1.size();
+        return listItem.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return title1.get(position);
+        return listItem.get(position).getCreatedAt();
     }
 
     @Override
@@ -52,28 +48,26 @@ public class ParkingAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+       /**inflate the image - then add specs - this is the delete icon which will show on every row - for each item*/
         View row = inflater.inflate(R.layout.row_items, null, true);
-        TextView textView;
-        //TextView textView = row.findViewById(R.id.textView);
         ImageView imageView = row.findViewById(R.id.imageView);
         imageView.setColorFilter(Color.RED);
         imageView.setMaxHeight(7);
-        //textView.setGravity(Gravity.CENTER);
-        // textView.setTextSize(20);
-        // TextView textView;
+
+        /**set the specs for the textview and attach to row alongside image*/
+        TextView textView;
         if (convertView instanceof TextView) {
             textView = (TextView) convertView;
         } else {
-            // textView = new TextView(context);
             textView = row.findViewById(R.id.textView);
             textView.setPadding(5,8,8,5);
             textView.setGravity(Gravity.CENTER);
             textView.setTextSize(20);
         }
-        final int pos = position;
         textView.setText(getItem(position).toString());
-        prefs = context.getSharedPreferences(MESSAGE_KEY, MODE_PRIVATE);
-        editor = prefs.edit();
+
+        /**when the delete icon is click - confirm the users request*/
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -84,8 +78,8 @@ public class ParkingAdapter extends BaseAdapter {
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                editor.remove(getItem(pos).toString());
-                                title1.remove(getItem(pos).toString());
+                                listItem.remove(position);
+                                //TODO: DELETE FUNC CALL
                                 notifyDataSetChanged();
                                 editor.apply();
                             }
@@ -97,6 +91,8 @@ public class ParkingAdapter extends BaseAdapter {
 
         return row;
     }
+
+    //TODO: DELETE FUNCTION
 
 }
 
