@@ -9,11 +9,12 @@ public class LocationObject implements Serializable {
     private int driver_id;
     private String createdAt;
 
-    public LocationObject(double park_lat, double park_lon, int park_id, String createdAt){
+    public LocationObject(double park_lat, double park_lon, int park_id, String createdAt, int driver_id){
         this.park_lat = park_lat;
         this.park_lon = park_lon;
         this.park_id = park_id;
         this.createdAt = createdAt;
+        this.driver_id = driver_id;
     }
 
     public double getPark_lat() {
@@ -30,5 +31,9 @@ public class LocationObject implements Serializable {
 
     public String getCreatedAt() {
         return createdAt;
+    }
+
+    public int getDriver_id() {
+        return driver_id;
     }
 }

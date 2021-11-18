@@ -45,50 +45,14 @@ public class ParkingItemsActivity extends AppCompatActivity {
         setTitle("Parking Location History");
 
         recyclerView = findViewById(R.id.parkingItemsRecyclerView);
-        setAdapter();
-        
         imageView = findViewById(R.id.imageView);
 
+        /**Our Location Object list - gets its data from an intent, which got the items from mainactivity - getArraylist function*/
         listItem = (ArrayList<LocationObject>) getIntent().getSerializableExtra(Constant.LOCATIONLIST);
-
-        adapter = new ParkingAdapter(this, listItem);
-        listView.setAdapter(adapter);
-
-        /**this handles the click of the item in the list view*/
-        listView.setOnItemClickListener((parent, view, position, id) -> {
-            String addressReturned = null;
-
-            /**get the current lat and lon for the item clicked on*/
-            double latitude = Double.valueOf(listItem.get(position).getPark_lat());
-            double longitude = Double.valueOf(listItem.get(position).getPark_lon());
-
-            /**call showAddress to convert the lat lon to geolocations, using geocoder*/
-            try {
-               addressReturned = showAddress(latitude, longitude);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        setAdapter();
 
 
-            /**confirm if the driver wants to navigate to the address found in the list*/
-            new AlertDialog.Builder(this)
-                    .setIcon(android.R.drawable.ic_menu_directions)
-                    .setTitle(addressReturned)
-                    .setMessage("Do you want to navigate to this address?")
-                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                             Intent intent = new Intent(Intent.ACTION_VIEW,
-                             Uri.parse(Constant.GOOGLE_MAP_URL + latitude + "," + longitude));
-                             startActivity(intent);
-                        }
-                    })
-                    .setNegativeButton("No", null)
-                    .show();
-
-            //ParkingItemsActivity.this.finish(); - I am not sure if we should finish here - leave like this for now
-        });
-
+       /**this button closes the history of parking list*/
         findViewById(R.id.closeItemBtn).setOnClickListener(v -> {
             startActivity(new Intent(ParkingItemsActivity.this, MainActivity.class));
             finish();
@@ -97,38 +61,13 @@ public class ParkingItemsActivity extends AppCompatActivity {
 
 
     private void setAdapter() {
-        parkingAdapter = new ParkingAdapter(this, itemsList);
+        parkingAdapter = new ParkingAdapter(this, listItem);
         RecyclerView.LayoutManager layoutManager =new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(parkingAdapter);
     }
-}
-
-    /**this function gets the actual address form the lat and lon coordinates*/
-    private String showAddress(double lat, double lon) throws IOException {
-        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-        List<Address> addresses = null;
-        String address = null;
 
 
-        /**try catch  - to prevent null exceptions*/
-        try {
-            /** Here 1 represent max location result to returned, by documents it recommended 1 to 5*/
-            addresses = geocoder.getFromLocation(lat, lon, 1);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        
-        /**double check if address is empty*/
-        if (addresses == null || addresses.size() == 0) {
-            Toast.makeText(this, "Sorry no address found ", Toast.LENGTH_SHORT).show();
-        }
-        else{
-            /** If any additional address line present than only 1, check with max available address lines by getMaxAddressLineIndex()*/
-            address = addresses.get(0).getAddressLine(0);
-        }
-        return address;
-    }
 }
 

@@ -445,24 +445,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mapController.setZoom(19.5);
             startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
             map.getOverlays().add(startMarker);
-            /*
-            mapController = map.getController();
-            if(myLocation!=null) {
-                startPoint = new GeoPoint(lat, lon);
-                mapController.setCenter(startPoint);
-                mapController.setZoom(19.5);
-                startMarker = new Marker(map);
-                startMarker.setPosition(startPoint);
-            }
-            */
-
-           /* startMarker.setTitle("You are here");
-            drawable = getResources().getDrawable(R.drawable.red_car_marker);
-            startMarker.setIcon(drawable);
-            startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-            map.getOverlays().add(startMarker);*/
-
-
         }
     };
 
@@ -471,9 +453,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             final int arraySize = list.length();
             for(int i = 0; i < arraySize; i++) {
                 JSONObject object = list.getJSONObject(i);
-                locationList.add(new LocationObject(object.getDouble(Constant.LATITUDE), object.getDouble(Constant.LONGITUDE), object.getInt(Constant.PARK_ID), object.getString(Constant.CREATED_AT)));
+                locationList.add(new LocationObject(object.getDouble(Constant.LATITUDE), object.getDouble(Constant.LONGITUDE), object.getInt(Constant.PARK_ID), object.getString(Constant.CREATED_AT), object.getInt(Constant.DRIVER_ID)));
             }
-            //Log.d("mtag", "came here5 " + getIntent().getParcelableArrayListExtra(Constant.LOCATIONLIST));
         }
 
 

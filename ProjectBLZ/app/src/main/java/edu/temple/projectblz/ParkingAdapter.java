@@ -3,30 +3,46 @@ package edu.temple.projectblz;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.SharedPreferences;
+import android.content.Intent;
 import android.graphics.Color;
+import android.location.Address;
+import android.location.Geocoder;
+import android.net.Uri;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Adapter;
-import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.StringRequest;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 
 public class ParkingAdapter extends RecyclerView.Adapter<ParkingAdapter.MyViewHolder> {
 
-     private Context context;
+    private Context context;
     private ArrayList<LocationObject> listItem;
 
-    public ParkingAdapter (Context context, ArrayList<LocationObject> listItem) {
+    public ParkingAdapter(Context context, ArrayList<LocationObject> listItem) {
         this.context = context;
         this.listItem = listItem;
     }
@@ -38,39 +54,40 @@ public class ParkingAdapter extends RecyclerView.Adapter<ParkingAdapter.MyViewHo
         View row = inflater.inflate(R.layout.row_items, null, true);
         return new MyViewHolder(row);
     }
-     
-       
-        
-@Override
-    public void onBindViewHolder(@NonNull RecyclerAdapter.MyViewHolder holder, int position) {
-        holder.audioText.setText(listItem.get(position));
-    }
 
     @Override
-    public int getCount() {
+    public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
+        holder.textView.setText(listItem.get(position).getCreatedAt());
+    }
+
+
+    @Override
+    public int getItemCount() {
         return listItem.size();
     }
 
-   public class MyViewHolder extends RecyclerView.ViewHolder {
+    public class MyViewHolder extends RecyclerView.ViewHolder {
         TextView textView;
-        ImageView imageView
-        public MyViewHolder(@NonNull View itemView){
+        ImageView imageView;
+
+        public MyViewHolder(@NonNull View itemView) {
             super(itemView);
-            imageView = itemView.findViewById(R.id.imageView);
-            imageView.setColorFilter(Color.RED);
-            imageView.setMaxHeight(7);
-            
-           /**set the specs for the textview and attach to row alongside image*/
+
+            /**set the specs for the textview and attach to row alongside image*/
             textView = itemView.findViewById(R.id.textView);
-            textView.setPadding(5,8,8,5);
+            textView.setPadding(5, 8, 8, 5);
             textView.setGravity(Gravity.CENTER);
             textView.setTextSize(20);
 
-            
-            itemView.setOnClickListener(new View.OnClickListener() {
+            imageView = itemView.findViewById(R.id.imageView);
+            imageView.setColorFilter(Color.RED);
+            imageView.setMaxHeight(7);
+
+
+            imageView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                  
+                    int position = getAdapterPosition();
                     new AlertDialog.Builder(context)
                         .setIcon(android.R.drawable.ic_delete)
                         .setTitle("Delete Parking Location")
@@ -79,11 +96,9 @@ public class ParkingAdapter extends RecyclerView.Adapter<ParkingAdapter.MyViewHo
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
 
-                                itemsList.remove(index);
-
+                                /**Delete item from db first, before removing from list*/
+                                deletePark(listItem.get(position).getPark_id(), listItem.get(position).getDriver_id(), listItem.get(position).getCreatedAt());
                                 listItem.remove(position);
-                                //TODO: DELETE FUNC CALL
-
                                 notifyDataSetChanged();
                             }
                         })
@@ -94,13 +109,109 @@ public class ParkingAdapter extends RecyclerView.Adapter<ParkingAdapter.MyViewHo
                             }
                         })
                         .show();
+                }
+            });
+
+            /**this handles the click of the item in the list view*/
+            itemView.setOnClickListener(v -> {
+                int position = getAdapterPosition();
+
+                String addressReturned = null;
+
+                /**get the current lat and lon for the item clicked on*/
+                double latitude = Double.valueOf(listItem.get(position).getPark_lat());
+                double longitude = Double.valueOf(listItem.get(position).getPark_lon());
+
+                /**call showAddress to convert the lat lon to geolocations, using geocoder*/
+                try {
+                    addressReturned = showAddress(latitude, longitude);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                /**confirm if the driver wants to navigate to the address found in the list*/
+                new AlertDialog.Builder(context)
+                        .setIcon(android.R.drawable.ic_menu_directions)
+                        .setTitle(addressReturned)
+                        .setMessage("Do you want to navigate to this address?")
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Intent intent = new Intent(Intent.ACTION_VIEW,
+                                        Uri.parse(Constant.GOOGLE_MAP_URL + latitude + "," + longitude));
+                                context.startActivity(intent);
+                            }
+                        })
+                        .setNegativeButton("No", null)
+                        .show();
+
+                //ParkingItemsActivity.this.finish(); - I am not sure if we should finish here - leave like this for now
+            });
         }
-        });
+
+        /**this function deletes item from database - use with caution*///TODO: USE WITH CAUTION
+        private void deletePark(int park_id, int driverId, String createdAt){
+            StringRequest stringRequest = new StringRequest(Request.Method.POST, Constant.DELETE_URL,
+                    response -> {
+
+                        Log.d("JSON", String.valueOf(response));
+
+                        try {
+                            JSONObject jsonObject = new JSONObject(response);
+
+                            if (jsonObject.getString("status").equals("success")) {
+                                Toast.makeText(context, "Parking Location Deleted", Toast.LENGTH_SHORT).show();
+                                Log.d("JSON", "success: " + "parking deleted");
+                            } else if(jsonObject.getString("status").equals("error")) {
+                                Log.d("JSON", "error: " + jsonObject.getString("message"));
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            Toast.makeText(context, "try/catch error", Toast.LENGTH_SHORT).show();
+                        }
+                    },
+                    error -> {
+                        VolleyLog.d("Error", "Error: " + error.getMessage());
+                    }) {
+                @Nullable
+                @Override
+                protected Map<String, String> getParams() throws AuthFailureError {
+                    Map<String, String> params = new HashMap<>();
+                    params.put(Constant.PARK_ID, String.valueOf(park_id));
+                    params.put(Constant.DRIVER_ID, String.valueOf(driverId));
+                    params.put(Constant.CREATED_AT, createdAt);
+                    return params;
+                }
+            };
+
+            RequestHandler.getInstance(context).addToRequestQueue(stringRequest);
+        }
     }
 
-    //TODO: DELETE FUNCTION
+    /**this function gets the actual address form the lat and lon coordinates*/
+    private String showAddress(double lat, double lon) throws IOException {
+        Geocoder geocoder = new Geocoder(context, Locale.getDefault());
+        List<Address> addresses = null;
+        String address = null;
 
+        /**try catch  - to prevent null exceptions*/
+        try {
+            /** Here 1 represent max location result to returned, by documents it recommended 1 to 5*/
+            addresses = geocoder.getFromLocation(lat, lon, 1);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
+        /**double check if address is empty*/
+        if (addresses == null || addresses.size() == 0) {
+            Toast.makeText(context, "Sorry no address found ", Toast.LENGTH_SHORT).show();
+        }
+        else{
+            /** If any additional address line present than only 1, check with max available address lines by getMaxAddressLineIndex()*/
+            address = addresses.get(0).getAddressLine(0);
+        }
+        return address;
+    }
 }
                   
  
