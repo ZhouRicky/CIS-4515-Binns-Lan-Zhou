@@ -432,14 +432,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 startMarker.setTitle("You are here");
                 drawable = getResources().getDrawable(R.drawable.red_car_marker);
                 startMarker.setIcon(drawable);
-                startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-                map.getOverlays().add(startMarker);
+                //startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+               // map.getOverlays().add(startMarker);
             } else {
                 GeoPoint geoPoint = new GeoPoint(lat, lon);
                 startPoint.setCoords(lat, lon);
                 //startPoint.bearingTo(geoPoint);
                 startMarker.setRotation((float) startPoint.bearingTo(geoPoint));
                 startMarker.setPosition(startPoint);
+                Log.d("mtag", "I KEEP COMING HERE");
             }
             mapController.setCenter(startPoint);
             mapController.setZoom(19.5);
