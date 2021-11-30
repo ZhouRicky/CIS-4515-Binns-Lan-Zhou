@@ -7,21 +7,28 @@ public class Constant {
     public static final String REGISTER_URL = "https://cis-linux2.temple.edu/~tul58076/register.php";
     public static final String PARK_URL = "https://cis-linux2.temple.edu/~tul58076/insertpark.php";
     public static final String HISTORY_URL = "https://cis-linux2.temple.edu/~tul58076/parkinghistory.php";
+    public static final String DELETE_URL = "https://cis-linux2.temple.edu/~tul58076/deleteparking.php";
+    public static final String GOOGLE_MAP_URL = "http://maps.google.com/maps?daddr=";
 
     /* LocationService constants */
     public static final String LOG_LOCATION = "Location";
     public static final int FOREGROUND_SERVICE_ID = 1;
 
-    /* Coordinate constants */
-    public static final String LATITUDE = "Lat";
-    public static final String LONGITUDE = "Lon";
+    //location coordinates
+    public static final String LATITUDE = "park_lat";
+    public static final String LONGITUDE = "park_lon";
 
     /* SharedPrefs constants */
     public static final String SHARED_PREFS_NAME = "ProjectBLZ";
     public static final String SHARED_PREFS_DEFAULT_STRING = "None";
+    public static final String LATPARKED = "latparked";
+    public static final String LOCATIONLIST = "locationlist";
+    public static final String LONPARKED = "lonparked";
     public static final String USERNAME = "username";
     public static final String PASSWORD = "password";
-    public static final String DRIVER_ID = "driverId";
+    public static final String DRIVER_ID = "driver_id";
+    public static final String CREATED_AT = "createdAt";
+    public static final String PARK_ID = "park_id";
     public static final String IS_LOGGED_IN = "is_logged_in";
     public static final String IS_PERMISSION_GRANTED = "is_permission_granted";
 
