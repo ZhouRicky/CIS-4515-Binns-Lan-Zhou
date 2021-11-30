@@ -299,8 +299,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         JSONObject jsonObject = new JSONObject(response);
 
                         if (jsonObject.getString("status").equals("success")) {
-                            sharedPrefs.setLatParked(lat);
-                            sharedPrefs.setLonParked(lon);
+                            sharedPrefs.setLatParked(String.valueOf(lat));
+                            sharedPrefs.setLonParked(String.valueOf(lon));
                             Toast.makeText(this, "Location saved", Toast.LENGTH_SHORT).show();
                             Log.d("JSON", "success: " + jsonObject.getString("message"));
                         } else if(jsonObject.getString("status").equals("error")) {
@@ -486,12 +486,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // TODO: add menu items and functionality to each menu item
         switch(item.getItemId()) {
             case R.id.nav_last_parked:
-                if(sharedPrefs.getLonParked() != null) {
+                if(sharedPrefs.getLatParked() != null && sharedPrefs.getLonParked() != null &&
+                        !sharedPrefs.getLatParked().equals(Constant.SHARED_PREFS_DEFAULT_STRING) &&
+                        !sharedPrefs.getLonParked().equals(Constant.SHARED_PREFS_DEFAULT_STRING)) {
                     Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
-                    Uri.parse(Constant.GOOGLE_MAP_URL + Double.valueOf(sharedPrefs.getLatParked()) + "," + Double.valueOf(sharedPrefs.getLonParked())));
+                            Uri.parse(Constant.GOOGLE_MAP_URL + Double.valueOf(sharedPrefs.getLatParked())
+                                    + "," + Double.valueOf(sharedPrefs.getLonParked())));
                     startActivity(intent);
                 } else {
-                    Toast.makeText(this, "No recent parked location, please check parking history", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "No recent parking location, please check your parking history", Toast.LENGTH_LONG).show();
                 }
                 break;
             case R.id.nav_parking_history:

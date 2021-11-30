@@ -2,7 +2,6 @@ package edu.temple.projectblz;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.util.Log;
 
 public class SharedPrefs {
 
@@ -20,6 +19,8 @@ public class SharedPrefs {
         clearDriverId();
         clearIsLoggedIn();
         clearIsPermissionGranted();
+        //clearLatParked();
+        //clearLonParked();
     }
 
 
@@ -114,11 +115,11 @@ public class SharedPrefs {
 
 
     // ================================================================================
-    //     LAST LAT PARKING LOCATION FOR CURRENTLY LOGGED IN USER
+    //     LATITUDE FOR THE LAST PARKING LOCATION FOR CURRENTLY LOGGED IN USER
     // ================================================================================
-    public void setLatParked(double lat) {
+    public void setLatParked(String lat) {
         SharedPreferences.Editor editor = sharedPrefs.edit();
-        editor.putString(Constant.LATPARKED, String.valueOf(lat));
+        editor.putString(Constant.LATPARKED, lat);
         editor.apply();
     }
 
@@ -126,18 +127,17 @@ public class SharedPrefs {
         return sharedPrefs.getString(Constant.LATPARKED, Constant.SHARED_PREFS_DEFAULT_STRING);
     }
 
-/* check if needed
     protected void clearLatParked() {
+        setLatParked(Constant.SHARED_PREFS_DEFAULT_STRING);
     }
-*/
 
 
     // ================================================================================
-    //     LAST LON PARKING LOCATION FOR CURRENTLY LOGGED IN USER
+    //     LONGITUDE FOR THE LAST PARKING LOCATION FOR CURRENTLY LOGGED IN USER
     // ================================================================================
-    public void setLonParked(double lon) {
+    public void setLonParked(String lon) {
         SharedPreferences.Editor editor = sharedPrefs.edit();
-        editor.putString(Constant.LONPARKED, String.valueOf(lon));
+        editor.putString(Constant.LONPARKED, lon);
         editor.apply();
     }
 
@@ -145,8 +145,7 @@ public class SharedPrefs {
         return sharedPrefs.getString(Constant.LONPARKED, Constant.SHARED_PREFS_DEFAULT_STRING);
     }
 
-/* check if needed
     protected void clearLonParked() {
+        setLonParked(Constant.SHARED_PREFS_DEFAULT_STRING);
     }
-*/
 }

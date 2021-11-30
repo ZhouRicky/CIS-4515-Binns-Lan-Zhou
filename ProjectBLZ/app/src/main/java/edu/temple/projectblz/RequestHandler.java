@@ -6,7 +6,6 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
 
-
 public class RequestHandler {
     private static RequestHandler instance;
     private RequestQueue requestQueue;

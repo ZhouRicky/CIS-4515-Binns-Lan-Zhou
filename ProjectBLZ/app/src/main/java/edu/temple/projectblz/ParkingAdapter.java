@@ -4,12 +4,10 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.net.Uri;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,7 +34,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-
 public class ParkingAdapter extends RecyclerView.Adapter<ParkingAdapter.MyViewHolder> {
 
     private Context context;
@@ -57,7 +54,7 @@ public class ParkingAdapter extends RecyclerView.Adapter<ParkingAdapter.MyViewHo
 
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
-        holder.textView.setText(listItem.get(position).getCreatedAt());
+        holder.parkTimeTextView.setText(listItem.get(position).getCreatedAt());
     }
 
 
@@ -67,24 +64,16 @@ public class ParkingAdapter extends RecyclerView.Adapter<ParkingAdapter.MyViewHo
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
-        TextView textView;
-        ImageView imageView;
+        TextView parkTimeTextView;
+        ImageView deleteImageView;
 
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
 
-            /* set the specs for the textview and attach to row alongside image */
-            textView = itemView.findViewById(R.id.textView);
-            textView.setPadding(5, 8, 8, 5);
-            textView.setGravity(Gravity.CENTER);
-            textView.setTextSize(20);
+            parkTimeTextView = itemView.findViewById(R.id.parkTimeTextView);
+            deleteImageView = itemView.findViewById(R.id.deleteImageView);
 
-            imageView = itemView.findViewById(R.id.imageView);
-            imageView.setColorFilter(Color.RED);
-            imageView.setMaxHeight(7);
-
-
-            imageView.setOnClickListener(new View.OnClickListener() {
+            deleteImageView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     int position = getAdapterPosition();
@@ -134,7 +123,7 @@ public class ParkingAdapter extends RecyclerView.Adapter<ParkingAdapter.MyViewHo
                         .setIcon(android.R.drawable.ic_menu_directions)
                         .setTitle(addressReturned)
                         .setMessage("Do you want to navigate to this address?")
-                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        .setNegativeButton("Yes", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 Intent intent = new Intent(Intent.ACTION_VIEW,
@@ -142,7 +131,7 @@ public class ParkingAdapter extends RecyclerView.Adapter<ParkingAdapter.MyViewHo
                                 context.startActivity(intent);
                             }
                         })
-                        .setNegativeButton("No", null)
+                        .setPositiveButton("No", null)
                         .show();
 
                 //ParkingItemsActivity.this.finish(); - I am not sure if we should finish here - leave like this for now
@@ -188,7 +177,7 @@ public class ParkingAdapter extends RecyclerView.Adapter<ParkingAdapter.MyViewHo
         }
     }
 
-    /* this function gets the actual address form the lat and lon coordinates */
+    /* this function gets the actual address from the lat and lon coordinates */
     private String showAddress(double lat, double lon) throws IOException {
         Geocoder geocoder = new Geocoder(context, Locale.getDefault());
         List<Address> addresses = null;
@@ -204,7 +193,7 @@ public class ParkingAdapter extends RecyclerView.Adapter<ParkingAdapter.MyViewHo
 
         /* double check if address is empty */
         if (addresses == null || addresses.size() == 0) {
-            Toast.makeText(context, "Sorry no address found ", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "Sorry, no address found", Toast.LENGTH_SHORT).show();
         }
         else{
             /* If any additional address line present than only 1, check with max available address lines by getMaxAddressLineIndex() */
