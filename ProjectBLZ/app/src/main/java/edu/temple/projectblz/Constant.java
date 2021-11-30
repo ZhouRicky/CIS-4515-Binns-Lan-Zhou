@@ -26,6 +26,7 @@ public class Constant {
     public static final String LONPARKED = "lonparked";
     public static final String USERNAME = "username";
     public static final String PASSWORD = "password";
+    public static final String CURRENTSPEED = "current_speed";
     public static final String DRIVER_ID = "driver_id";
     public static final String CREATED_AT = "createdAt";
     public static final String PARK_ID = "park_id";
