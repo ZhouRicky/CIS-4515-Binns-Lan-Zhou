@@ -73,7 +73,7 @@ public class ParkingAdapter extends RecyclerView.Adapter<ParkingAdapter.MyViewHo
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
 
-            /**set the specs for the textview and attach to row alongside image*/
+            /* set the specs for the textview and attach to row alongside image */
             textView = itemView.findViewById(R.id.textView);
             textView.setPadding(5, 8, 8, 5);
             textView.setGravity(Gravity.CENTER);
@@ -96,7 +96,7 @@ public class ParkingAdapter extends RecyclerView.Adapter<ParkingAdapter.MyViewHo
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
 
-                                /**Delete item from db first, before removing from list*/
+                                /* Delete item from db first, before removing from list */
                                 deletePark(listItem.get(position).getPark_id(), listItem.get(position).getDriver_id(), listItem.get(position).getCreatedAt());
                                 listItem.remove(position);
                                 notifyDataSetChanged();
@@ -112,24 +112,24 @@ public class ParkingAdapter extends RecyclerView.Adapter<ParkingAdapter.MyViewHo
                 }
             });
 
-            /**this handles the click of the item in the list view*/
+            /* this handles the click of the item in the list view */
             itemView.setOnClickListener(v -> {
                 int position = getAdapterPosition();
 
                 String addressReturned = null;
 
-                /**get the current lat and lon for the item clicked on*/
-                double latitude = Double.valueOf(listItem.get(position).getPark_lat());
-                double longitude = Double.valueOf(listItem.get(position).getPark_lon());
+                /* get the current lat and lon for the item clicked on */
+                double latitude = listItem.get(position).getPark_lat();
+                double longitude = listItem.get(position).getPark_lon();
 
-                /**call showAddress to convert the lat lon to geolocations, using geocoder*/
+                /* call showAddress to convert the lat lon to geolocations, using geocoder */
                 try {
                     addressReturned = showAddress(latitude, longitude);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
 
-                /**confirm if the driver wants to navigate to the address found in the list*/
+                /* confirm if the driver wants to navigate to the address found in the list */
                 new AlertDialog.Builder(context)
                         .setIcon(android.R.drawable.ic_menu_directions)
                         .setTitle(addressReturned)
@@ -149,7 +149,7 @@ public class ParkingAdapter extends RecyclerView.Adapter<ParkingAdapter.MyViewHo
             });
         }
 
-        /**this function deletes item from database - use with caution*///TODO: USE WITH CAUTION
+        /* this function deletes item from database - use with caution *///TODO: USE WITH CAUTION
         private void deletePark(int park_id, int driverId, String createdAt){
             StringRequest stringRequest = new StringRequest(Request.Method.POST, Constant.DELETE_URL,
                     response -> {
@@ -188,30 +188,28 @@ public class ParkingAdapter extends RecyclerView.Adapter<ParkingAdapter.MyViewHo
         }
     }
 
-    /**this function gets the actual address form the lat and lon coordinates*/
+    /* this function gets the actual address form the lat and lon coordinates */
     private String showAddress(double lat, double lon) throws IOException {
         Geocoder geocoder = new Geocoder(context, Locale.getDefault());
         List<Address> addresses = null;
         String address = null;
 
-        /**try catch  - to prevent null exceptions*/
+        /* try catch  - to prevent null exceptions */
         try {
-            /** Here 1 represent max location result to returned, by documents it recommended 1 to 5*/
+            /* Here 1 represent max location result to returned, by documents it recommended 1 to 5 */
             addresses = geocoder.getFromLocation(lat, lon, 1);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        /**double check if address is empty*/
+        /* double check if address is empty */
         if (addresses == null || addresses.size() == 0) {
             Toast.makeText(context, "Sorry no address found ", Toast.LENGTH_SHORT).show();
         }
         else{
-            /** If any additional address line present than only 1, check with max available address lines by getMaxAddressLineIndex()*/
+            /* If any additional address line present than only 1, check with max available address lines by getMaxAddressLineIndex() */
             address = addresses.get(0).getAddressLine(0);
         }
         return address;
     }
 }
-                  
- 

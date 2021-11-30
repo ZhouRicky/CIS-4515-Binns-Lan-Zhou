@@ -113,12 +113,10 @@ public class SharedPrefs {
     }
 
 
-
     // ================================================================================
     //     LAST LAT PARKING LOCATION FOR CURRENTLY LOGGED IN USER
     // ================================================================================
     public void setLatParked(double lat) {
-        Log.d("tag3 ","came here2 " +  lat);
         SharedPreferences.Editor editor = sharedPrefs.edit();
         editor.putString(Constant.LATPARKED, String.valueOf(lat));
         editor.apply();
@@ -128,8 +126,11 @@ public class SharedPrefs {
         return sharedPrefs.getString(Constant.LATPARKED, Constant.SHARED_PREFS_DEFAULT_STRING);
     }
 
-   // protected void clearPassword() {
-      //  setPassword(Constant.SHARED_PREFS_DEFAULT_STRING);
+/* check if needed
+    protected void clearLatParked() {
+    }
+*/
+
 
     // ================================================================================
     //     LAST LON PARKING LOCATION FOR CURRENTLY LOGGED IN USER
@@ -143,8 +144,9 @@ public class SharedPrefs {
     public String getLonParked() {
         return sharedPrefs.getString(Constant.LONPARKED, Constant.SHARED_PREFS_DEFAULT_STRING);
     }
-   // }
 
-
-
+/* check if needed
+    protected void clearLonParked() {
+    }
+*/
 }

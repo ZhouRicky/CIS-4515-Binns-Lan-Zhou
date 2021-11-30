@@ -14,7 +14,7 @@ public class Constant {
     public static final String LOG_LOCATION = "Location";
     public static final int FOREGROUND_SERVICE_ID = 1;
 
-    //location coordinates
+    /* Coordinate constants */
     public static final String LATITUDE = "park_lat";
     public static final String LONGITUDE = "park_lon";
 

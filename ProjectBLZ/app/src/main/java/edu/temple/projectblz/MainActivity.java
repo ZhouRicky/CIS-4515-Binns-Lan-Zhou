@@ -486,14 +486,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // TODO: add menu items and functionality to each menu item
         switch(item.getItemId()) {
             case R.id.nav_last_parked:
-                //Toast.makeText(this, "Clicked item 2", Toast.LENGTH_SHORT).show();
-
-                if(sharedPrefs.getLonParked()!=null) {
+                if(sharedPrefs.getLonParked() != null) {
                     Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
                     Uri.parse(Constant.GOOGLE_MAP_URL + Double.valueOf(sharedPrefs.getLatParked()) + "," + Double.valueOf(sharedPrefs.getLonParked())));
                     startActivity(intent);
-                }
-                else{
+                } else {
                     Toast.makeText(this, "No recent parked location, please check parking history", Toast.LENGTH_SHORT).show();
                 }
                 break;
