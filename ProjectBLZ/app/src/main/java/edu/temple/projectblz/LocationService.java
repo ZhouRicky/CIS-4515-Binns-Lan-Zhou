@@ -21,9 +21,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 public class LocationService extends Service {
-    //Initialization of the location service based off TA's version
 
-    //Initialization of the Location Manager, Listener and Notification
     private LocationManager locationManager;
     private LocationListener listener;
     private Notification notification;
@@ -41,9 +39,12 @@ public class LocationService extends Service {
                 if (location != null){
 
                     try{
+
+                        Log.d("mtag", "came50 " + location.getSpeed());
                         Intent intent = new Intent("driverMood");
                         intent.putExtra(Constant.LATITUDE, location.getLatitude());
                         intent.putExtra(Constant.LONGITUDE, location.getLongitude());
+                        intent.putExtra(Constant.CURRENTSPEED, location.getSpeed());
                         Log.d("tag3", "Longitude " + location.getLongitude());
                         LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(context);
                         localBroadcastManager.sendBroadcast(intent);
