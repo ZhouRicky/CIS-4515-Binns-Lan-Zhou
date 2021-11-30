@@ -13,15 +13,22 @@
     <string name="create_account_button">Create account</string>
     <string name="cancel">Cancel</string>
     <string name="email_hint">Email</string>
-    <string name="button">Button</string>
+    <string name="save_park_location">Save Parking Location</string>
+    <string name="speed_limit">SPEED LIMIT</string>
+    <string name="speed_limit_start_value">10</string>
+    <string name="current_speed">CURRENT SPEED</string>
     <!--to toggle the open close button
         of the navigation drawer-->
     <string name="nav_open">Open navigation drawer</string>
     <string name="nav_close">Close navigation drawer</string>
     <!---->
     <!--strings used for navigation_menu.xml-->
-    <string name="item_1">Item 1</string>
-    <string name="item_2">Item 2</string>
-    <string name="item_3">Item 3</string>
+    <string name="nav_parking_history">Parking History</string>
+    <string name="nav_last_parked">Last Parked</string>
+    <string name="nav_logout">Logout</string>
+    <!--strings used for activity_parking_items.xml-->
+    <string name="close_button">Close</string>
+    <string name="image_view">Delete button</string>
+    <string name="delete_button_desc">This will delete corresponding location</string>
     <!---->
 </resources>

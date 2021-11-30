@@ -1,7 +1,7 @@
 package edu.temple.projectblz;
 
 //An enum of Position could be use for saving parking location and current location.
-
+// TODO: potentially unneeded; delete if so
 public class Position {
 
     String id;

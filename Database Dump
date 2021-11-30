@@ -1,0 +1,76 @@
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `drivers`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `driver_data`
+--
+
+DROP TABLE IF EXISTS `driver_data`;
+CREATE TABLE IF NOT EXISTS `driver_data` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `firstname` varchar(30) NOT NULL,
+  `lastname` varchar(30) NOT NULL,
+  `email` varchar(30) NOT NULL,
+  `username` varchar(30) NOT NULL,
+  `password` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`),
+  UNIQUE KEY `email` (`email`)
+) ENGINE=MyISAM AUTO_INCREMENT=16 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `driver_data`
+--
+
+INSERT INTO `driver_data` (`id`, `firstname`, `lastname`, `email`, `username`, `password`) VALUES
+(1, 'test1', 'test1', 'test1@gmail.com', 'test1', 'test1'),
+(2, 'test2', 'test2', 'test2@gmail.com', 'test2', 'test2'),
+(3, 'test3', 'test3', 'test3@gmail.com', 'test3', '$2y$10$g6o4nLxI.PmNTSTBACV8W.rNHUf1pT/4urjWWrIu481QaueFzbMbO'),
+(4, 'John', 'Wick', 'john@gmail.com', 'john', 'john'),
+(12, 'Kevin', 'Smith', 'kevin@gmail.com', 'kevin', '$2y$10$TjR4aeTjQZ33JmTqXoj4pOO2Zit6/acHC1a8noFw3kc73EAk90/b6'),
+(11, 'Carol', 'Brown', 'carol@gmail.com', 'carol', '$2y$10$B1H2jqlcfNUvPqKgS2cyW.4w2/f8iUeB/dxIv5fecr4yzANeBaQWO'),
+(13, 'Bria', 'Williams', 'bria@gmail.com', 'bria', '$2y$10$XlGk0vkbdVotMoPVvKsbPOfjDSZGN0qrlRwvymZ/gZPNtf3m9xfCi'),
+(14, 'Francine', 'Charles', 'francine@gmail.com', 'francine', '$2y$10$62jQXVsaT/d1mr7wx5wYfuHJgxnUyoRCBOUPAeGS3iUecDjw/DgRe'),
+(15, 'Jennifer', 'Bishop', 'jenny@gmail.com', 'jenny', '$2y$10$8/pBlWcizCudRnTCCbm5le.dHyrMhIvq1hgdtSHfpdvqYpAnldR8O');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `driver_park`
+--
+
+DROP TABLE IF EXISTS `driver_park`;
+CREATE TABLE IF NOT EXISTS `driver_park` (
+  `park_id` int(30) NOT NULL AUTO_INCREMENT,
+  `park_lat` double NOT NULL,
+  `park_lon` double NOT NULL,
+  `driver_id` int(30) NOT NULL,
+  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`park_id`)
+) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `driver_park`
+--
+
+INSERT INTO `driver_park` (`park_id`, `park_lat`, `park_lon`, `driver_id`, `createdAt`) VALUES
+(1, 0.4589, 1.5698, 13, '2021-11-02 03:46:02'),
+(2, 40.4589, -35.5698, 12, '2021-11-02 20:54:21');
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

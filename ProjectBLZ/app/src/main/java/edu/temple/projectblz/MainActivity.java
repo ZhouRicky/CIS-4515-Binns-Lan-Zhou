@@ -2,6 +2,7 @@ package edu.temple.projectblz;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
@@ -9,10 +10,10 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -20,6 +21,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -28,6 +30,7 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -44,7 +47,13 @@ import com.android.volley.Request;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
 import com.google.android.material.navigation.NavigationView;
+import com.karumi.dexter.Dexter;
+import com.karumi.dexter.MultiplePermissionsReport;
+import com.karumi.dexter.PermissionToken;
+import com.karumi.dexter.listener.PermissionRequest;
+import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.osmdroid.api.IMapController;
@@ -54,17 +63,15 @@ import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, SensorEventListener {
 
-
     SharedPrefs sharedPrefs;
-    //String lat = "40.4589";
-    //String lon = "-35.5698";
-    String id = "12";
+    ArrayList<LocationObject> locationList;
     MapView map;
     IMapController mapController;
     GeoPoint startPoint;
@@ -73,9 +80,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     LocationManager locationManager;
     Location myLocation;
     LocationService myService;
+    double lat, lon;
 
-    double lat;
-    double lon;
+    String username, password, driverId;
+
+    TextView speedLimitValue, currentSpeedValue;
 
     DrawerLayout drawerLayout;
     ActionBarDrawerToggle toggle;
@@ -83,12 +92,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     //Initializing a sensor, sensormanager
     SensorManager sensorManager;
-    Sensor LightSensor, AcceleroMeterSensor;
-    Context context;
+    Sensor LightSensor,AccelerometerSensor;
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -98,13 +104,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Configuration.getInstance().load(getApplication(), PreferenceManager.getDefaultSharedPreferences(getApplication()));
         sharedPrefs = new SharedPrefs(this);
 
-        //request location & writting to system permission
-        RequestPermission();
+
+        //request location & writing to system permission
         //initialization of the sensor and manager
         Initialization();
 
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, new IntentFilter("driverMood"));
-        //TODO Get all of those into Initialization(). easier to read
+        // TODO: Get all of those into Initialization(). easier to read
+        //  RZ comment: maybe
 
         createNotificationChannel();
 
@@ -112,6 +119,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         locationManager = getSystemService(LocationManager.class);
 
+        checkPermission();
+        locationList = new ArrayList<>();
+        speedLimitValue = findViewById(R.id.speedLimitValueTextView);
+        currentSpeedValue = findViewById(R.id.currentSpeedValueTextView);
+
+        username = sharedPrefs.getLoggedInUser();
+        password = sharedPrefs.getPassword();
+        driverId = sharedPrefs.getDriverId();
 
         // ================================================================================
         //      Navigation Drawer Code Start
@@ -138,6 +153,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // ================================================================================
 
         //map initialization
+
         map = (MapView) findViewById(R.id.map);
         map.setTileSource(TileSourceFactory.MAPNIK);
         map.setBuiltInZoomControls(true);
@@ -150,53 +166,40 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mapController.setZoom(19.5);
             startMarker = new Marker(map);
             startMarker.setPosition(startPoint);
+            startMarker.setTitle("You are here");
         }
 
-        startMarker.setTitle("You are here");
         drawable = getResources().getDrawable(R.drawable.red_car_marker);
         startMarker.setIcon(drawable);
         startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         map.getOverlays().add(startMarker);
 
-
-        findViewById(R.id.button).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.saveParkButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d("t", "I CAME HERE");
-                    savePark();
-                Log.d("t", "I CAME HERE2");
+                AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("Save Parking Location")
+                        .setMessage("Do you want to save your parking location?")
+                        .create();
+
+                alertDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        savePark();
+                    }
+                });
+
+                alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, "No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+                alertDialog.show();
             }
         });
 
-    }
-
-    /*initialization of
-           1.sensor Manager
-           2.Light Sensor
-           3.AcceleroMeterSensor
-     */
-    private void Initialization() {
-        sensorManager             = (SensorManager) getSystemService(Service.SENSOR_SERVICE);
-        LightSensor               = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
-        AcceleroMeterSensor       = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-    }
-
-
-    /*
-        Request Permission at starting of the activity
-            * Location Permission
-            * Write Setting Permission
-     */
-    private void RequestPermission() {
-        if  (!isGPSPermission()){
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, Constant.RequestCode_FineLocation);
-        }
-        else {
-            getGPS();
-        }
-        if(!isWriteSettingPermission()){
-            requestPermissions(new String[]{Manifest.permission.WRITE_SETTINGS}, Constant.RequestCode_WriteSetting);
-        }
     }
 
     /**
@@ -205,12 +208,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      */
     public void onResume() {
         super.onResume();
+        checkPermission();
         map.onResume();
+
+        // TODO: this should also go into onCreate?
         //register light sensor and accelerometer sensor
-
-        sensorManager.registerListener(this,LightSensor,sensorManager.SENSOR_DELAY_NORMAL);
-        sensorManager.registerListener(this,AcceleroMeterSensor,sensorManager.SENSOR_DELAY_NORMAL);
-
+        sensorManager.registerListener(this, LightSensor, sensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(this, AccelerometerSensor, sensorManager.SENSOR_DELAY_NORMAL);
     }
 
     /**
@@ -229,54 +233,79 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         getEndService();
     }
 
-    /**check if user gave permission*/
-    private boolean isGPSPermission(){
-        return checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    /*initialization of
+           1.sensor Manager
+           2.Light Sensor
+           3.AccelerometerSensor
+     */
+    private void Initialization() {
+        sensorManager             = (SensorManager) getSystemService(Service.SENSOR_SERVICE);
+        LightSensor               = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+        AccelerometerSensor       = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
     }
 
-    //Check if User have WriteSetting PErmission
-    private boolean isWriteSettingPermission(){
-        return checkSelfPermission(Manifest.permission.WRITE_SETTINGS) == PackageManager.PERMISSION_GRANTED;
-    }
+    // uses dexter library to check for permissions at runtime
+    private void checkPermission() {
+        Dexter.withContext(this).withPermissions(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+                .withListener(new MultiplePermissionsListener() {
+                    @SuppressLint("MissingPermission")
+                    @Override
+                    public void onPermissionsChecked(MultiplePermissionsReport multiplePermissionsReport) {
+                        if(multiplePermissionsReport.areAllPermissionsGranted()) {
+                            sharedPrefs.setIsPermissionGranted(true);
+                            myLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                        }
 
+                        if(multiplePermissionsReport.getDeniedPermissionResponses().size() > 0){
+                            sharedPrefs.clearIsPermissionGranted();
+                            Toast.makeText(MainActivity.this, "All permissions are required to continue", Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent();
+                            intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                            Uri uri = Uri.fromParts("package", getPackageName(), "");
+                            intent.setData(uri);
+                            startActivity(intent);
+                        }
+                    }
 
-    /**if permission is granted, get last known gps location*/
-    @SuppressLint("MissingPermission")
-    private void getGPS(){
-        if (isGPSPermission())
-            myLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-    }
+                    @Override
+                    public void onPermissionRationaleShouldBeShown(List<PermissionRequest> list, PermissionToken permissionToken) {
+                        permissionToken.continuePermissionRequest();
+                    }
+                }).check();
 
-    /**check the users response for gps permission*/
-    @Override
-    public void onRequestPermissionsResult (int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == Constant.RequestCode_FineLocation && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-            getGPS();
-        if (requestCode == Constant.RequestCode_WriteSetting && grantResults[0] != PackageManager.PERMISSION_GRANTED){
-            //TODO Implement Alert notify brightness caution
+        // checks for WRITE_SETTINGS permission
+        if(!Settings.System.canWrite(this)) {
+            Toast.makeText(this, "Modify system settings must be allowed", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent();
+            intent.setAction(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+            Uri uri = Uri.fromParts("package", getPackageName(), "");
+            intent.setData(uri);
+            startActivity(intent);
         }
     }
 
+    // TODO: Implement Alert notify brightness caution
+    //  RZ comment: I changed the permission check code, so see where this can fit
+
+
+    /**this function saves the drivers parking location*/
     private void savePark() {
-        //I am replacing URL into CONSTANT :::ParkPhp
-        //"https://cis-linux2.temple.edu/~tul58076/insertpark.php";
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, Constant.ParkPhp,
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, Constant.PARK_URL,
                 response -> {
 
-//                    Log.d("JSON", String.valueOf(response));
+                    Log.d("JSON", String.valueOf(response));
 
                     try {
                         JSONObject jsonObject = new JSONObject(response);
-                        String status = jsonObject.getString("status");
 
-                        if (status.equals(Constant.SUCCESS_CODE)) {
-                            // TODO: add local save location functionality if needed
+                        if (jsonObject.getString("status").equals("success")) {
+                            sharedPrefs.setLatParked(lat);
+                            sharedPrefs.setLonParked(lon);
                             Toast.makeText(this, "Location saved", Toast.LENGTH_SHORT).show();
+                            Log.d("JSON", "success: " + jsonObject.getString("message"));
+                        } else if(jsonObject.getString("status").equals("error")) {
+                            Log.d("JSON", "error: " + jsonObject.getString("message"));
                         }
-
-                        Toast.makeText(this, status, Toast.LENGTH_SHORT).show();
-                        Log.d("JSON", "status1: " + status);
                     } catch (JSONException e) {
                         e.printStackTrace();
                         Toast.makeText(this, "try/catch error", Toast.LENGTH_SHORT).show();
@@ -289,9 +318,52 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
                 Map<String, String> params = new HashMap<>();
-                params.put(Constant.ParkingLatitude, String.valueOf(lat)); //TODO
-                params.put(Constant.ParkingLongitude, String.valueOf(lon));//TODO
-                params.put(Constant.ParkingDriverID, id);//TODO
+                params.put("park_lat", String.valueOf(lat));
+                params.put("park_lon", String.valueOf(lon));
+                params.put("driver_id", driverId);
+                return params;
+            }
+        };
+
+        RequestHandler.getInstance(this).addToRequestQueue(stringRequest);
+    }
+
+    private void parkingHistory() {
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, Constant.HISTORY_URL,
+                response -> {
+
+                    // TODO: we will need a JSONArray with all the parking locations for specified driverId
+                    Log.d("JSON", String.valueOf(response));
+
+                    try {
+                        JSONObject jsonObject = new JSONObject(response);
+
+                        if (jsonObject.getString("status").equals("success")) {
+                            JSONArray jsonArray = jsonObject.getJSONArray("data");
+                            getArraylist(jsonArray);
+
+                            Intent newIntent = new Intent(MainActivity.this, ParkingItemsActivity.class);
+                            newIntent.putExtra(Constant.LOCATIONLIST, locationList);
+                            startActivity(newIntent);
+                            finish();
+                        } else if(jsonObject.getString("status").equals("error")) {
+                            Log.d("JSON", "error: " + jsonObject.getString("message"));
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Toast.makeText(this, "try/catch error", Toast.LENGTH_SHORT).show();
+                    }
+                },
+                error -> {
+                    VolleyLog.d("Error", "Error: " + error.getMessage());
+                }) {
+            @Nullable
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("username", username);
+                params.put("password", password);
+                params.put("driver_id", driverId);
                 return params;
             }
         };
@@ -306,7 +378,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             myService = ((LocationService.MyLocalBinder) service).getService();
-            // myService.registerActivity(LoggedInActivity.this);
         }
 
         @Override
@@ -374,26 +445,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mapController.setZoom(19.5);
             startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
             map.getOverlays().add(startMarker);
-            /*
-            mapController = map.getController();
-            if(myLocation!=null) {
-                startPoint = new GeoPoint(lat, lon);
-                mapController.setCenter(startPoint);
-                mapController.setZoom(19.5);
-                startMarker = new Marker(map);
-                startMarker.setPosition(startPoint);
-            }
-            */
-
-           /* startMarker.setTitle("You are here");
-            drawable = getResources().getDrawable(R.drawable.red_car_marker);
-            startMarker.setIcon(drawable);
-            startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-            map.getOverlays().add(startMarker);*/
-
-
         }
     };
+
+        /**populate an arraylist with database parking info*/
+        private void getArraylist(JSONArray list) throws JSONException {
+            final int arraySize = list.length();
+            for(int i = 0; i < arraySize; i++) {
+                JSONObject object = list.getJSONObject(i);
+                locationList.add(new LocationObject(object.getDouble(Constant.LATITUDE), object.getDouble(Constant.LONGITUDE), object.getInt(Constant.PARK_ID), object.getString(Constant.CREATED_AT), object.getInt(Constant.DRIVER_ID)));
+            }
+        }
 
 
     // override the onOptionsItemSelected()
@@ -423,14 +485,25 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // TODO: add menu items and functionality to each menu item
         switch(item.getItemId()) {
-            case R.id.nav_item_1:
-                Toast.makeText(this, "Clicked Item 1", Toast.LENGTH_SHORT).show();
+            case R.id.nav_last_parked:
+                //Toast.makeText(this, "Clicked item 2", Toast.LENGTH_SHORT).show();
+
+                if(sharedPrefs.getLonParked()!=null) {
+                    Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
+                    Uri.parse(Constant.GOOGLE_MAP_URL + Double.valueOf(sharedPrefs.getLatParked()) + "," + Double.valueOf(sharedPrefs.getLonParked())));
+                    startActivity(intent);
+                }
+                else{
+                    Toast.makeText(this, "No recent parked location, please check parking history", Toast.LENGTH_SHORT).show();
+                }
                 break;
-            case R.id.nav_item_2:
-                Toast.makeText(this, "Clicked item 2", Toast.LENGTH_SHORT).show();
+            case R.id.nav_parking_history:
+                parkingHistory();
                 break;
-            case R.id.nav_item_3:
-                Toast.makeText(this, "Clicked item 3", Toast.LENGTH_SHORT).show();
+            case R.id.nav_logout:
+                sharedPrefs.clearAllUserSettings();
+                startActivity(new Intent(this, LoginActivity.class));
+                finish();
                 break;
         }
 
@@ -441,7 +514,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
         if(sensorEvent.sensor.getType()==Sensor.TYPE_ACCELEROMETER) {
-            //TODO Implement feature of accelerometer based of floating bar
+            // TODO: Implement feature of accelerometer based of floating bar
         }
         //Implemented simple algorithm for light sensor
         if(sensorEvent.sensor.getType()==Sensor.TYPE_LIGHT){
@@ -451,7 +524,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void setBrightness(int brightness) {
-        //TODO Implement Algorithm for brightness control
+        // TODO: Implement Algorithm for brightness control
+        //  RZ comment: this doesn't really do anything rn
 
         if(brightness < Constant.Brightness_Zero){
             brightness = Constant.Brightness_Zero;
@@ -459,7 +533,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         else if(brightness > Constant.Brightness_Max){
             brightness = Constant.Brightness_Max;
         }
-
+        Log.d("Brightness Test","Brightness is: "+ brightness);
         ContentResolver contentResolver = getApplicationContext().getContentResolver();
         Settings.System.putInt(contentResolver, Settings.System.SCREEN_BRIGHTNESS,brightness);
 
@@ -467,6 +541,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int i) {
-        //TODO override for interface, would have to implement if needed for accerlerometer sensor
+        // TODO: override for interface, would have to implement if needed for accerlerometer sensor
     }
 }
