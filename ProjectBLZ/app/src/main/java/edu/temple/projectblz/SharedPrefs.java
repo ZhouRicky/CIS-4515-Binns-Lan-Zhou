@@ -2,7 +2,6 @@ package edu.temple.projectblz;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.util.Log;
 
 public class SharedPrefs {
 
@@ -111,40 +110,5 @@ public class SharedPrefs {
     protected void clearIsPermissionGranted() {
         setIsPermissionGranted(false);
     }
-
-
-
-    // ================================================================================
-    //     LAST LAT PARKING LOCATION FOR CURRENTLY LOGGED IN USER
-    // ================================================================================
-    public void setLatParked(double lat) {
-        Log.d("tag3 ","came here2 " +  lat);
-        SharedPreferences.Editor editor = sharedPrefs.edit();
-        editor.putString(Constant.LATPARKED, String.valueOf(lat));
-        editor.apply();
-    }
-
-    public String getLatParked() {
-        return sharedPrefs.getString(Constant.LATPARKED, Constant.SHARED_PREFS_DEFAULT_STRING);
-    }
-
-   // protected void clearPassword() {
-      //  setPassword(Constant.SHARED_PREFS_DEFAULT_STRING);
-
-    // ================================================================================
-    //     LAST LON PARKING LOCATION FOR CURRENTLY LOGGED IN USER
-    // ================================================================================
-    public void setLonParked(double lon) {
-        SharedPreferences.Editor editor = sharedPrefs.edit();
-        editor.putString(Constant.LONPARKED, String.valueOf(lon));
-        editor.apply();
-    }
-
-    public String getLonParked() {
-        return sharedPrefs.getString(Constant.LONPARKED, Constant.SHARED_PREFS_DEFAULT_STRING);
-    }
-   // }
-
-
 
 }
