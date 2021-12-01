@@ -1,6 +1,5 @@
 package edu.temple.projectblz;
 
-
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -27,14 +26,15 @@ public class ParkingItemsActivity extends AppCompatActivity {
         setTitle("Parking Location History");
 
         recyclerView = findViewById(R.id.parkingItemsRecyclerView);
-        imageView = findViewById(R.id.imageView);
+        imageView = findViewById(R.id.deleteImageView);
 
-        /**Our Location Object list - gets its data from an intent, which got the items from MainActivity - getArraylist function*/
+      
+        /* Our Location Object list - gets its data from an intent, which got the items from mainactivity - getArraylist function */
         listItem = (ArrayList<LocationObject>) getIntent().getSerializableExtra(Constant.LOCATIONLIST);
         setAdapter();
 
 
-       /**this button closes the history of parking list*/
+        /* this button closes the history of parking list */
         findViewById(R.id.closeItemBtn).setOnClickListener(v -> {
             startActivity(new Intent(ParkingItemsActivity.this, MainActivity.class));
             finish();
@@ -49,4 +49,3 @@ public class ParkingItemsActivity extends AppCompatActivity {
         recyclerView.setAdapter(parkingAdapter);
     }
 }
-
