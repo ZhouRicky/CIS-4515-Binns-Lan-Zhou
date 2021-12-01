@@ -10,15 +10,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.widget.ImageView;
 
-
 import java.util.ArrayList;
 
 public class ParkingItemsActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
-    ParkingAdapter parkingAdapter;
-    ArrayList<LocationObject> listItem = new ArrayList<>();
+    private ParkingAdapter parkingAdapter;
+    private ArrayList<LocationObject> listItem = new ArrayList<>();
     ImageView imageView;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +28,7 @@ public class ParkingItemsActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.parkingItemsRecyclerView);
         imageView = findViewById(R.id.deleteImageView);
 
+      
         /* Our Location Object list - gets its data from an intent, which got the items from mainactivity - getArraylist function */
         listItem = (ArrayList<LocationObject>) getIntent().getSerializableExtra(Constant.LOCATIONLIST);
         setAdapter();
@@ -41,7 +40,6 @@ public class ParkingItemsActivity extends AppCompatActivity {
             finish();
         });
     }
-
 
     private void setAdapter() {
         parkingAdapter = new ParkingAdapter(this, listItem);

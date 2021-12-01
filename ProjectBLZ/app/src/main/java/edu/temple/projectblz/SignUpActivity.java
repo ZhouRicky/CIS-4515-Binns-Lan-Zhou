@@ -25,13 +25,13 @@ import java.util.Map;
 
 public class SignUpActivity extends AppCompatActivity {
 
-    SharedPrefs sharedPrefs;
+    private SharedPrefs sharedPrefs;
 
-    TextView statusTextView, cancelEditText;
-    EditText firstNameEditText, lastNameEditText, usernameEditText, passwordEditText, confirmPasswordEditText, emailEditText;
-    Button createAccountButton;
+    private TextView statusTextView, cancelEditText;
+    private EditText firstNameEditText, lastNameEditText, usernameEditText, passwordEditText, confirmPasswordEditText, emailEditText;
+    private Button createAccountButton;
 
-    String firstName, lastName, username, password, confirmPassword, email;
+    private String firstName, lastName, username, password, confirmPassword, email;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
