@@ -109,7 +109,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private boolean silenceFlag = false;
     private ImageButton speakButton;
     private ImageButton silentButton;
-    ArrayList roadArrList;
     RequestQueue queue;
 
 
@@ -742,7 +741,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         /**double check if address is empty*/
         if (addresses == null || addresses.size() == 0) {
-            Toast.makeText(this, "Sorry no address found ", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Sorry, no address found ", Toast.LENGTH_SHORT).show();
         } else {
             /** If any additional address line present than only 1, check with max available address lines by getMaxAddressLineIndex()*/
             address = addresses.get(0).getAddressLine(0);
@@ -752,14 +751,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
-        if (sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            // TODO: Implement feature of accelerometer based of floating bar
-        }
-        //Implemented simple algorithm for light sensor
         if (sensorEvent.sensor.getType() == Sensor.TYPE_LIGHT) {
             setBrightness((int) sensorEvent.values[0]);
         }
-
     }
 
     private void setBrightness(int brightness) {
@@ -771,7 +765,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (brightness > Constant.Brightness_Max) {
             brightness = Constant.Brightness_Max;
         }
-        Log.d("Brightness Test", "Brightness is: " + brightness);
+        Log.d(Constant.BrightnessLog, "Brightness is: " + brightness);
         ContentResolver contentResolver = getApplicationContext().getContentResolver();
         Settings.System.putInt(contentResolver, Settings.System.SCREEN_BRIGHTNESS, brightness);
 
@@ -783,21 +777,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     public void getmaxSpeed(String latitude, String longitude, String maxlat, String maxlon) {
-        String RequestURL = "http://www.overpass-api.de/api/xapi?*[maxspeed=*][bbox=" + longitude + "," + latitude + "," + maxlon + "," + maxlat + "]";
+        String RequestURL = Constant.OverpassAPIPrefix + longitude + "," + latitude + "," + maxlon + "," + maxlat + "]";
 
         StringRequest stringRequest = new StringRequest(Request.Method.POST, RequestURL, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-
-
                 responseParse(response);
-                Log.d("RequestURL is: ",RequestURL);
+                Log.d(Constant.TestingLineOfRequest,RequestURL);
 
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.d("Error", error.toString());
+                Log.d(Constant.VolleyErrorPrompt, error.toString());
             }
         }) {
 
@@ -813,18 +805,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         String SpeedLimit = null;
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
-            if (line.startsWith("    <tag k=\"maxspeed\" ")) {
+            if (line.startsWith(Constant.SpeedLimitLinePrefix)) {
                 SpeedLimit = line.replaceAll("[^0-9]", "");
 
-                Log.d("SpeedLimit from responseParse", "The speed limit is :" + SpeedLimit);
-                Log.d("The Line is ",line);
+                Log.d(Constant.SpeedLimitLogForResponse, "The speed limit is :" + SpeedLimit);
+                Log.d(Constant.TestingLineOfRequest,line);
                 break;
 
                 // process the line
             }
             if(SpeedLimit==null){
                 SpeedLimit = "25";
-                Log.d("SpeedLimit from SpeedLimit=null", "The speed limit is :" + SpeedLimit);
+                Log.d(Constant.SpeedLimitLogForNull, "The speed limit is :" + SpeedLimit);
                 //TODO Better algorithm to stays constant
 
             }

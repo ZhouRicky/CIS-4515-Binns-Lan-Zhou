@@ -40,18 +40,17 @@ public class LocationService extends Service {
 
                     try{
 
-                        Log.d("mtag", "came50 " + location.getSpeed());
+                        Log.d(Constant.CurrentSpeedLog, "The Current Speed is: " + location.getSpeed());
                         Intent intent = new Intent("driverMood");
                         intent.putExtra(Constant.LATITUDE, location.getLatitude());
                         intent.putExtra(Constant.LONGITUDE, location.getLongitude());
                         intent.putExtra(Constant.CURRENTSPEED, location.getSpeed());
-                        Log.d("tag3", "Longitude " + location.getLongitude());
                         LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(context);
                         localBroadcastManager.sendBroadcast(intent);
 
                     } catch (Exception e) {
                         e.printStackTrace();
-                        Log.d("Print", String.valueOf(e));
+                        Log.d(Constant.ExceptionE_Locaation, String.valueOf(e));
                     }
 
                 }
