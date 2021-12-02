@@ -825,6 +825,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if(SpeedLimit==null){
                 SpeedLimit = "25";
                 Log.d("SpeedLimit from SpeedLimit=null", "The speed limit is :" + SpeedLimit);
+                //TODO Better algorithm to stays constant
 
             }
 
