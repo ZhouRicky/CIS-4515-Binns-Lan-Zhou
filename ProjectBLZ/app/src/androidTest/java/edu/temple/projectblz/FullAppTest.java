@@ -58,6 +58,10 @@ public class FullAppTest {
         Espresso.closeSoftKeyboard();
         onView(withId(R.id.loginButton)).perform(click());
 
+        // test silent button
+        onView(withId(R.id.silentButton)).perform(click());
+        onView(withId(R.id.speakButton)).perform(click());
+
         // test last parked location, should be null on clean run
         onView(withId(R.id.myDrawerLayout)).check(matches(isClosed())).perform(DrawerActions.open());
         onView(withId(R.id.nav_last_parked)).perform(click());
@@ -89,10 +93,6 @@ public class FullAppTest {
         onView(withId(R.id.parkingItemsRecyclerView)).perform(RecyclerViewActions.actionOnItemAtPosition(0, clickChildViewWithId(R.id.deleteImageView)));
         onView(withText("Yes")).inRoot(isDialog()).perform(click());
         onView(withId(R.id.closeItemBtn)).perform(click());
-
-        // test silent button
-        onView(withId(R.id.silentButton)).perform(click());
-        onView(withId(R.id.speakButton)).perform(click());
 
         // test logout
         onView(withId(R.id.myDrawerLayout)).check(matches(isClosed())).perform(DrawerActions.open());

@@ -49,7 +49,6 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
@@ -76,6 +75,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, SensorEventListener {
@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        /** ensures that the map has a writable location for the map cache*/
+        /* ensures that the map has a writable location for the map cache*/
         Configuration.getInstance().load(getApplication(), PreferenceManager.getDefaultSharedPreferences(getApplication()));
         sharedPrefs = new SharedPrefs(this);
 
@@ -153,7 +153,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         silentButton = findViewById(R.id.silentButton);
         speakButton = findViewById(R.id.speakButton);
 
-        /**text to speech will be on by default*/
+        /* text to speech will be on by default*/
         silentButton.setOnClickListener(v -> {
             speakButton.setVisibility(View.VISIBLE);
             silentButton.setVisibility(View.INVISIBLE);
@@ -184,7 +184,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         toggle.syncState();
 
         // to make the Navigation drawer icon always appear on the action bar
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
         navigationView.setNavigationItemSelectedListener(this);
 
@@ -221,30 +221,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         map.getOverlays().add(startMarker);
 
-        findViewById(R.id.saveParkButton).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this)
-                        .setTitle("Save Parking Location")
-                        .setMessage("Do you want to save your parking location?")
-                        .create();
+        findViewById(R.id.saveParkButton).setOnClickListener(v -> {
+            AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this)
+                    .setTitle("Save Parking Location")
+                    .setMessage("Do you want to save your parking location?")
+                    .create();
 
-                alertDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Yes", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        savePark();
-                    }
-                });
+            alertDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Yes", (dialog, which) -> savePark());
 
-                alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, "No", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-                    }
-                });
+            alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, "No", (dialog, which) -> dialog.cancel());
 
-                alertDialog.show();
-            }
+            alertDialog.show();
         });
 
         textToSpeech = new TextToSpeech(getApplicationContext(), status -> {
@@ -382,12 +369,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         Toast.makeText(this, "try/catch error", Toast.LENGTH_SHORT).show();
                     }
                 },
-                error -> {
-                    VolleyLog.d("Error", "Error: " + error.getMessage());
-                }) {
-            @Nullable
+                error -> VolleyLog.d("Error", "Error: " + error.getMessage())) {
+            @NonNull
             @Override
-            protected Map<String, String> getParams() throws AuthFailureError {
+            protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
                 params.put("park_lat", String.valueOf(lat));
                 params.put("park_lon", String.valueOf(lon));
@@ -410,7 +395,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             JSONArray jsonArray = jsonObject.getJSONArray("data");
                             getArraylist(jsonArray);
 
-                            /**send over the list of locations from db with this intent*/
+                            /* send over the list of locations from db with this intent*/
                             Intent newIntent = new Intent(MainActivity.this, ParkingItemsActivity.class);
                             newIntent.putExtra(Constant.LOCATIONLIST, locationList);
                             startActivity(newIntent);
@@ -423,12 +408,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         Toast.makeText(this, "try/catch error", Toast.LENGTH_SHORT).show();
                     }
                 },
-                error -> {
-                    VolleyLog.d("Error", "Error: " + error.getMessage());
-                }) {
-            @Nullable
+                error -> VolleyLog.d("Error", "Error: " + error.getMessage())) {
+            @NonNull
             @Override
-            protected Map<String, String> getParams() throws AuthFailureError {
+            protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
                 params.put("username", username);
                 params.put("password", password);
@@ -455,7 +438,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     };
 
-    /**this function starts a service*/
+    /* this function starts a service*/
     private void getStartService(){
         Intent intent = new Intent(this, LocationService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -466,14 +449,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
-    /**this function end a service*/
+    /* this function end a service*/
     private void getEndService(){
         Intent intent = new Intent(this, LocationService.class);
         unbindService(serviceConnection);
         stopService(intent);
     }
 
-    /**a notification is required for a foreground service*/
+    /* a notification is required for a foreground service*/
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void createNotificationChannel() {
         NotificationChannel notificationChannel = new NotificationChannel(
@@ -486,18 +469,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         notificationManager.createNotificationChannel(notificationChannel);
     }
 
-    /**receive the driver location from services*/
+    /* receive the driver location from services*/
     private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
 
         @Override
         public void onReceive(Context context, Intent intent) {
             speedLimitCount++;
 
-            /**get data from location services*/
+            /* get data from location services*/
             lat = intent.getDoubleExtra(Constant.LATITUDE, 0);
             lon = intent.getDoubleExtra(Constant.LONGITUDE, 0);
 
-            /**set a flag to ensure starting speed, and get current speed from location services*/
+            /* set a flag to ensure starting speed, and get current speed from location services*/
             if(speedFlag){
                 currentSpeed = (int) intent.getFloatExtra(Constant.CURRENTSPEED, 0);
             }
@@ -507,16 +490,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             currentSpeedValue.setText(String.valueOf(currentSpeed));
             speedFlag = true;
 
-            /**get the speed limit for the current road segment*/
+            /* get the speed limit for the current road segment*/
             if((speedLimitCount % 10) == 0){
                 speedLimit = getSpeedLimit();
                 speedLimitValue.setText(String.valueOf(speedLimit));
             }
 
-            /**check if we need to send a warning to driver - see if they are approaching the speed limit */
+            /* check if we need to send a warning to driver - see if they are approaching the speed limit */
             checkWarning(currentSpeed, speedLimit);
 
-            /**playedspeech is a value assigned to a string that has just been played, check played ensures we don't give the same warning back to back*/
+            /* playedspeech is a value assigned to a string that has just been played, check played ensures we don't give the same warning back to back*/
             if(!silenceFlag) {//Silence flag is used to check whether or not we should use text too speech
                 if (playedSpeech != checkPlayedSpeech) {
                     getSpeech(playedSpeech);
@@ -680,7 +663,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void getLastAddress(){
         //String addressReturned = ;
-        /**confirm if the driver wants to navigate to the address found in the list*/
+        /* confirm if the driver wants to navigate to the address found in the list*/
         new AlertDialog.Builder(this)
                 .setIcon(android.R.drawable.ic_menu_directions)
                 .setTitle(showAddress(Double.parseDouble(sharedPrefs.getLatParked()), Double.parseDouble(sharedPrefs.getLonParked())))
@@ -704,20 +687,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         List<Address> addresses = null;
         String address = null;
 
-        /**try catch  - to prevent null exceptions*/
+        /* try catch  - to prevent null exceptions*/
         try {
-            /** Here 1 represent max location result to returned, by documents it recommended 1 to 5*/
+            /* Here 1 represent max location result to returned, by documents it recommended 1 to 5*/
             addresses = geocoder.getFromLocation(lat, lon, 1);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        /**double check if address is empty*/
+        /* double check if address is empty*/
         if (addresses == null || addresses.size() == 0) {
             Toast.makeText(this, "Sorry no address found ", Toast.LENGTH_SHORT).show();
         }
         else{
-            /** If any additional address line present than only 1, check with max available address lines by getMaxAddressLineIndex()*/
+            /* If any additional address line present than only 1, check with max available address lines by getMaxAddressLineIndex()*/
             address = addresses.get(0).getAddressLine(0);
         }
         return address;
