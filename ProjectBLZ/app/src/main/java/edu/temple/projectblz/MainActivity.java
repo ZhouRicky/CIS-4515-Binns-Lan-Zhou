@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private ImageButton speakButton;
     private ImageButton silentButton;
 
-    private int[] speedArray = {10, 15, 25, 30, 35 ,40, 45, 50, 55, 65, 70};
+    private int[] speedArray = {15, 20, 25, 30, 35, 40, 45, 50, 55};
 
     CardView currentSpeedCard;
     DrawerLayout drawerLayout;
@@ -150,12 +150,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         password = sharedPrefs.getPassword();
         driverId = sharedPrefs.getDriverId();
 
+        silentButton = findViewById(R.id.silentButton);
         speakButton = findViewById(R.id.speakButton);
 
         /**text to speech will be on by default*/
-        speakButton.setVisibility(View.INVISIBLE);
-
-        silentButton = findViewById(R.id.silentButton);
         silentButton.setOnClickListener(v -> {
             speakButton.setVisibility(View.VISIBLE);
             silentButton.setVisibility(View.INVISIBLE);
@@ -550,69 +548,69 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     };
 
-        /**populate an arraylist with database parking info*/
-        private void getArraylist(JSONArray list) throws JSONException {
-            final int arraySize = list.length();
-            for(int i = 0; i < arraySize; i++) {
-                JSONObject object = list.getJSONObject(i);
-                locationList.add(new LocationObject(object.getDouble(Constant.LATITUDE), object.getDouble(Constant.LONGITUDE), object.getInt(Constant.PARK_ID), object.getString(Constant.CREATED_AT), object.getInt(Constant.DRIVER_ID)));
-            }
+    /**populate an arraylist with database parking info*/
+    private void getArraylist(JSONArray list) throws JSONException {
+        final int arraySize = list.length();
+        for(int i = 0; i < arraySize; i++) {
+            JSONObject object = list.getJSONObject(i);
+            locationList.add(new LocationObject(object.getDouble(Constant.LATITUDE), object.getDouble(Constant.LONGITUDE), object.getInt(Constant.PARK_ID), object.getString(Constant.CREATED_AT), object.getInt(Constant.DRIVER_ID)));
         }
+    }
 
-        protected int getSpeedLimit(){
-            Random random = new Random();
-            int limit;
-            limit = speedArray[random.nextInt(speedArray.length)];
-            return limit;
-        }
+    protected int getSpeedLimit(){
+        Random random = new Random();
+        int limit;
+        limit = speedArray[random.nextInt(speedArray.length)];
+        return limit;
+    }
 
-        /**this function gives the speed warning*/
-        private void checkWarning(int currentSpeed, int speedLimit){
-            if((speedLimit - currentSpeed) <= 3 && (speedLimit - currentSpeed) > 0){
-               // String preWarning = "You are approaching the speed limit";
-                currentSpeedCard.setCardBackgroundColor(Color.YELLOW);
-              //  textToSpeech.speak(preWarning, TextToSpeech.QUEUE_ADD, null, null);
-                playedSpeech = 1;
-            }
-            else if((speedLimit - currentSpeed) == 0){
-               // String atLimit = "You are at the speed limit";
-                currentSpeedCard.setCardBackgroundColor(Color.MAGENTA);
-               // textToSpeech.speak(atLimit, TextToSpeech.QUEUE_ADD, null, null);
-                playedSpeech = 2;
-            }
-            else if((currentSpeed - speedLimit) >= 5){
-                //String postWarning = "You are over the speed limit";
-                currentSpeedCard.setCardBackgroundColor(Color.RED);
-              //  textToSpeech.speak(postWarning, TextToSpeech.QUEUE_ADD, null, null);
-                playedSpeech = 3;
-            }
-            else if((speedLimit - currentSpeed) >= 5){
-                currentSpeedCard.setCardBackgroundColor(Color.WHITE);
-                playedSpeech = 0;
-            }
+    /**this function gives the speed warning*/
+    private void checkWarning(int currentSpeed, int speedLimit){
+        if((speedLimit - currentSpeed) <= 3 && (speedLimit - currentSpeed) > 0){
+           // String preWarning = "You are approaching the speed limit";
+            currentSpeedCard.setCardBackgroundColor(Color.YELLOW);
+          //  textToSpeech.speak(preWarning, TextToSpeech.QUEUE_ADD, null, null);
+            playedSpeech = 1;
         }
+        else if((speedLimit - currentSpeed) == 0){
+           // String atLimit = "You are at the speed limit";
+            currentSpeedCard.setCardBackgroundColor(Color.MAGENTA);
+           // textToSpeech.speak(atLimit, TextToSpeech.QUEUE_ADD, null, null);
+            playedSpeech = 2;
+        }
+        else if((currentSpeed - speedLimit) >= 5){
+            //String postWarning = "You are over the speed limit";
+            currentSpeedCard.setCardBackgroundColor(Color.RED);
+          //  textToSpeech.speak(postWarning, TextToSpeech.QUEUE_ADD, null, null);
+            playedSpeech = 3;
+        }
+        else if((speedLimit - currentSpeed) >= 5){
+            currentSpeedCard.setCardBackgroundColor(Color.WHITE);
+            playedSpeech = 0;
+        }
+    }
 
-        /**this function plays the appropriate speech for the speed the driver is going*/
-        private void getSpeech(int value){
-            switch (value){
-                case 1:
-                    String preWarning = "You are approaching the speed limit";
-                    textToSpeech.speak(preWarning, TextToSpeech.QUEUE_ADD, null, null);
-                    break;
-                case 2:
-                    String atLimit = "You are at the speed limit";
-                    textToSpeech.speak(atLimit, TextToSpeech.QUEUE_ADD, null, null);
-                    break;
-                case 3:
-                    String postWarning = "You are over the speed limit";
-                    textToSpeech.speak(postWarning, TextToSpeech.QUEUE_ADD, null, null);
-                    break;
-                case 0:
-                    String noWarning = "You are well below the speed limit";
-                    textToSpeech.speak(noWarning, TextToSpeech.QUEUE_ADD, null, null);
-                    break;
-            }
+    /**this function plays the appropriate speech for the speed the driver is going*/
+    private void getSpeech(int value){
+        switch (value){
+            case 1:
+                String preWarning = "You are approaching the speed limit";
+                textToSpeech.speak(preWarning, TextToSpeech.QUEUE_ADD, null, null);
+                break;
+            case 2:
+                String atLimit = "You are at the speed limit";
+                textToSpeech.speak(atLimit, TextToSpeech.QUEUE_ADD, null, null);
+                break;
+            case 3:
+                String postWarning = "You are over the speed limit";
+                textToSpeech.speak(postWarning, TextToSpeech.QUEUE_ADD, null, null);
+                break;
+            case 0:
+                String noWarning = "You are well below the speed limit";
+                textToSpeech.speak(noWarning, TextToSpeech.QUEUE_ADD, null, null);
+                break;
         }
+    }
 
     /**menu items to be selected*/
     @Override
@@ -687,7 +685,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 .setIcon(android.R.drawable.ic_menu_directions)
                 .setTitle(showAddress(Double.parseDouble(sharedPrefs.getLatParked()), Double.parseDouble(sharedPrefs.getLonParked())))
                 .setMessage("Do you want to navigate to this address?")
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                .setNegativeButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
@@ -695,7 +693,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         startActivity(intent);
                     }
                 })
-                .setNegativeButton("No", null)
+                .setPositiveButton("No", null)
                 .show();
 
     }

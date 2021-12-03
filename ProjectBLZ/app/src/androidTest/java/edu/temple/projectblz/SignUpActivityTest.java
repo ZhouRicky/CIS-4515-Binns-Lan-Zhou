@@ -2,7 +2,6 @@ package edu.temple.projectblz;
 
 import static org.junit.Assert.*;
 
-import android.app.Activity;
 import android.view.View;
 
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
