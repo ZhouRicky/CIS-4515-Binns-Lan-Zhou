@@ -91,7 +91,7 @@
                 android:paddingTop="20dp"
                 android:text="@string/speed_limit_start_value"
                 android:textColor="@color/black"
-                android:textSize="30sp"
+                android:textSize="28sp"
                 android:textStyle="bold" />
 
         </androidx.cardview.widget.CardView>
@@ -129,7 +129,7 @@
                 android:paddingTop="20dp"
                 android:text="@string/current_speed_start_value"
                 android:textColor="@color/black"
-                android:textSize="30sp"
+                android:textSize="28sp"
                 android:textStyle="bold" />
         </androidx.cardview.widget.CardView>
 

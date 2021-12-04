@@ -81,7 +81,7 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, SensorEventListener {
 
     private SharedPrefs sharedPrefs;
-    private ArrayList<LocationObject> locationList;
+    public ArrayList<LocationObject> locationList;
     private MapView map;
     private IMapController mapController;
     private GeoPoint startPoint;
@@ -98,7 +98,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private int checkPlayedSpeech = 0;
     private TextView speedLimitValue, currentSpeedValue;
     private int currentSpeed = 0;
-    protected int speedLimit = 10;
+    public int speedLimit = 15;
+    public int color;
     private boolean speedFlag = false;
     private boolean silenceFlag = false;
     private ImageButton speakButton;
@@ -275,17 +276,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         sensorManager.unregisterListener(this);
     }
 
-    public void onStop(){
-        super.onStop();
-        getEndService();
-    }
-
     @Override
     protected void onDestroy() {
         if(textToSpeech!=null){
             textToSpeech.stop();
             textToSpeech.shutdown();
         }
+        getEndService();
         super.onDestroy();
     }
 
@@ -483,11 +480,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             /* set a flag to ensure starting speed, and get current speed from location services*/
             if(speedFlag){
                 currentSpeed = (int) intent.getFloatExtra(Constant.CURRENTSPEED, 0);
+                if(currentSpeed != 0) {
+                    currentSpeedValue.setText(String.valueOf(currentSpeed));
+                }
             }
             else{
                 currentSpeed = 0;
             }
-            currentSpeedValue.setText(String.valueOf(currentSpeed));
+            //currentSpeedValue.setText(String.valueOf(currentSpeed));
             speedFlag = true;
 
             /* get the speed limit for the current road segment*/
@@ -498,9 +498,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             /* check if we need to send a warning to driver - see if they are approaching the speed limit */
             checkWarning(currentSpeed, speedLimit);
+            currentSpeedCard.setCardBackgroundColor(color);
 
             /* playedspeech is a value assigned to a string that has just been played, check played ensures we don't give the same warning back to back*/
             if(!silenceFlag) {//Silence flag is used to check whether or not we should use text too speech
+                Log.d("Speech", "playedSpeech: " + playedSpeech + "   checkPlayedSpeech: " + checkPlayedSpeech);
                 if (playedSpeech != checkPlayedSpeech) {
                     getSpeech(playedSpeech);
                 }
@@ -548,27 +550,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     /**this function gives the speed warning*/
-    private void checkWarning(int currentSpeed, int speedLimit){
+    public void checkWarning(int currentSpeed, int speedLimit){
         if((speedLimit - currentSpeed) <= 3 && (speedLimit - currentSpeed) > 0){
-           // String preWarning = "You are approaching the speed limit";
-            currentSpeedCard.setCardBackgroundColor(Color.YELLOW);
-          //  textToSpeech.speak(preWarning, TextToSpeech.QUEUE_ADD, null, null);
+            //String preWarning = "You are approaching the speed limit";
+            color = Color.YELLOW;
+            //textToSpeech.speak(preWarning, TextToSpeech.QUEUE_ADD, null, null);
             playedSpeech = 1;
         }
         else if((speedLimit - currentSpeed) == 0){
-           // String atLimit = "You are at the speed limit";
-            currentSpeedCard.setCardBackgroundColor(Color.MAGENTA);
-           // textToSpeech.speak(atLimit, TextToSpeech.QUEUE_ADD, null, null);
+            //String atLimit = "You are at the speed limit";
+            color = Color.MAGENTA;
+            //textToSpeech.speak(atLimit, TextToSpeech.QUEUE_ADD, null, null);
             playedSpeech = 2;
         }
         else if((currentSpeed - speedLimit) >= 5){
             //String postWarning = "You are over the speed limit";
-            currentSpeedCard.setCardBackgroundColor(Color.RED);
-          //  textToSpeech.speak(postWarning, TextToSpeech.QUEUE_ADD, null, null);
+            color = Color.RED;
+            //textToSpeech.speak(postWarning, TextToSpeech.QUEUE_ADD, null, null);
             playedSpeech = 3;
         }
         else if((speedLimit - currentSpeed) >= 5){
-            currentSpeedCard.setCardBackgroundColor(Color.WHITE);
+            color = Color.WHITE;
             playedSpeech = 0;
         }
     }
@@ -728,7 +730,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         else if(brightness > Constant.Brightness_Max){
             brightness = Constant.Brightness_Max;
         }
-        Log.d("Brightness Test","Brightness is: "+ brightness);
+        //Log.d("Brightness Test","Brightness is: "+ brightness);
         ContentResolver contentResolver = getApplicationContext().getContentResolver();
         Settings.System.putInt(contentResolver, Settings.System.SCREEN_BRIGHTNESS,brightness);
 

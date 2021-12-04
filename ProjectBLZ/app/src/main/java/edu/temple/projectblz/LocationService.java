@@ -40,12 +40,15 @@ public class LocationService extends Service {
 
                     try{
 
-                        Log.d("mtag", "came50 " + location.getSpeed());
+                        //Log.d("mtag", "came50 " + location.getSpeed());
                         Intent intent = new Intent("driverMood");
                         intent.putExtra(Constant.LATITUDE, location.getLatitude());
                         intent.putExtra(Constant.LONGITUDE, location.getLongitude());
-                        intent.putExtra(Constant.CURRENTSPEED, location.getSpeed());
-                        Log.d("tag3", "Longitude " + location.getLongitude());
+                        if(location.getSpeed() != 0) {
+                            Log.d("getSpeed", "Current speed: " + location.getSpeed());
+                            intent.putExtra(Constant.CURRENTSPEED, location.getSpeed());
+                        }
+                        //Log.d("tag3", "Longitude " + location.getLongitude());
                         LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(context);
                         localBroadcastManager.sendBroadcast(intent);
 
