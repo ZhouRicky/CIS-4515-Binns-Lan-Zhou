@@ -26,8 +26,8 @@
     <string name="nav_close">Close navigation drawer</string>
     <!---->
     <!--strings used for navigation_menu.xml-->
+    <string name="nav_last_parked">Last Parking Location</string>
     <string name="nav_parking_history">Parking History</string>
-    <string name="nav_last_parked">Last Parked</string>
     <string name="nav_logout">Logout</string>
     <!--strings used for activity_parking_items.xml-->
     <string name="close_button">Close</string>

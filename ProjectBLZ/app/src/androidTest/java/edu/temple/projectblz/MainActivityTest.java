@@ -4,7 +4,6 @@ import static org.hamcrest.core.AnyOf.anyOf;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 
-import android.app.Activity;
 import android.view.View;
 
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
