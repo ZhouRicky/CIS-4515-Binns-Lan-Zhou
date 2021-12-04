@@ -25,6 +25,7 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -109,6 +110,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private boolean silenceFlag = false;
     private ImageButton speakButton;
     private ImageButton silentButton;
+    boolean requestfound = false;
     RequestQueue queue;
 
 
@@ -509,17 +511,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         @Override
         public void onReceive(Context context, Intent intent) {
+
             speedLimitCount++;
 
             /**get data from location services*/
             lat = intent.getDoubleExtra(Constant.LATITUDE, 0);
             lon = intent.getDoubleExtra(Constant.LONGITUDE, 0);
 
-            if (lat != 0 || lon != 0) {
-                getmaxSpeed(String.valueOf(lat), String.valueOf(lon), String.valueOf(lat + 0.0001), String.valueOf(lon + 0.0001));
-            }
-
-            /**set a flag to ensure starting speed, and get current speed from location services*/
             if (speedFlag) {
                 currentSpeed = (int) intent.getFloatExtra(Constant.CURRENTSPEED, 0);
             } else {
@@ -528,22 +526,62 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             currentSpeedValue.setText(String.valueOf(currentSpeed));
             speedFlag = true;
 
-            /**get the speed limit for the current road segment*/
-            if ((speedLimitCount % 10) == 0) {
-                speedLimit = getSpeedLimit();
-                speedLimitValue.setText(String.valueOf(speedLimit));
+            new UpdatingSpeedLimit().execute();
+           /* if (lat != 0 || lon != 0) {
+                if (speedLimitCount == 0)
+                    getmaxSpeed(String.valueOf(lat), String.valueOf(lon), String.valueOf(lat + 0.0001), String.valueOf(lon + 0.0001));
+                else if (speedLimit >= 20 && speedLimitCount % 20 == 0) {
+                    getmaxSpeed(String.valueOf(lat), String.valueOf(lon), String.valueOf(lat + 0.0001), String.valueOf(lon + 0.0001));
+
+                }
             }
 
+            /**set a flag to ensure starting speed, and get current speed from location services*/
+
+
+            //***1
+            /*if (requestfound == false) {
+                if (speedLimitCount == 0) {
+                    speedLimit = 25;
+                    speedLimitValue.setText(String.valueOf(speedLimit));
+                    checkWarning(currentSpeed, speedLimit);
+                }
+                if (speedLimitCount >= 15 && speedLimitCount % 15 == 0) {
+                    boolean flag = true;
+                    while (true) {
+                        int temp = getSpeedLimit();
+                        if (Math.abs(temp - currentSpeed) <= 30) {
+                            speedLimit = temp;
+                            speedLimitValue.setText(String.valueOf(speedLimit));
+                            checkWarning(currentSpeed, speedLimit);
+                            break;
+                        }
+                    }
+
+
+                }
+            } else {
+                checkWarning(currentSpeed, speedLimit);
+            }
+
+            */
+
+
             /**check if we need to send a warning to driver - see if they are approaching the speed limit */
-            checkWarning(currentSpeed, speedLimit);
+
 
             /**playedspeech is a value assigned to a string that has just been played, check played ensures we don't give the same warning back to back*/
-            if (!silenceFlag) {//Silence flag is used to check whether or not we should use text too speech
+
+            /*if (!silenceFlag) {//Silence flag is used to check whether or not we should use text too speech
                 if (playedSpeech != checkPlayedSpeech) {
                     getSpeech(playedSpeech);
                 }
             }
             checkPlayedSpeech = playedSpeech;
+
+             */
+
+
 
             //TODO: when car stops, speed should be zero, check how to send such message - we collect speed in broadcast receiver
             Log.d("lat", "this lat " + lat);
@@ -591,7 +629,31 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      * this function gives the speed warning
      */
     private void checkWarning(int currentSpeed, int speedLimit) {
-        if ((speedLimit - currentSpeed) <= 3 && (speedLimit - currentSpeed) > 0) {
+
+        int statement1 = (Integer.valueOf(speedLimitValue.getText().toString()) - Integer.valueOf(currentSpeedValue.getText().toString()));
+        int statement2 =(Integer.valueOf(currentSpeedValue.getText().toString()) - Integer.valueOf(speedLimitValue.getText().toString()));
+
+        if(statement1 >=5){
+            currentSpeedCard.setCardBackgroundColor(Color.WHITE);
+            playedSpeech = 0;
+        }
+        else if(statement1<=3&&statement1>0) {
+            currentSpeedCard.setCardBackgroundColor(Color.YELLOW);
+            //  textToSpeech.speak(preWarning, TextToSpeech.QUEUE_ADD, null, null);
+            playedSpeech = 1;
+        }
+        else if(statement1 == 0){
+            currentSpeedCard.setCardBackgroundColor(Color.MAGENTA);
+            // textToSpeech.speak(atLimit, TextToSpeech.QUEUE_ADD, null, null);
+            playedSpeech = 2;
+        }
+        else if(statement2 >= 5){
+            currentSpeedCard.setCardBackgroundColor(Color.RED);
+            //  textToSpeech.speak(postWarning, TextToSpeech.QUEUE_ADD, null, null);
+            playedSpeech = 3;
+        }
+
+       /* if ((speedLimit - currentSpeed) <= 3 && (speedLimit - currentSpeed) > 0) {
             // String preWarning = "You are approaching the speed limit";
             currentSpeedCard.setCardBackgroundColor(Color.YELLOW);
             //  textToSpeech.speak(preWarning, TextToSpeech.QUEUE_ADD, null, null);
@@ -610,6 +672,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             currentSpeedCard.setCardBackgroundColor(Color.WHITE);
             playedSpeech = 0;
         }
+
+        */
     }
 
     /**
@@ -778,12 +842,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     public void getmaxSpeed(String latitude, String longitude, String maxlat, String maxlon) {
         String RequestURL = Constant.OverpassAPIPrefix + longitude + "," + latitude + "," + maxlon + "," + maxlat + "]";
-
         StringRequest stringRequest = new StringRequest(Request.Method.POST, RequestURL, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                responseParse(response);
-                Log.d(Constant.TestingLineOfRequest,RequestURL);
+                speedLimit = responseParse(response);
+                Log.d(Constant.TestingLineOfRequest, RequestURL);
 
             }
         }, new Response.ErrorListener() {
@@ -799,24 +862,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
 
-
-    public void responseParse(String response) {
+    public int responseParse(String response) {
         Scanner scanner = new Scanner(response);
         String SpeedLimit = null;
+        int SpeedLimits = -1;
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
             if (line.startsWith(Constant.SpeedLimitLinePrefix)) {
+                requestfound = true;
                 SpeedLimit = line.replaceAll("[^0-9]", "");
-
                 Log.d(Constant.SpeedLimitLogForResponse, "The speed limit is :" + SpeedLimit);
-                Log.d(Constant.TestingLineOfRequest,line);
+                Log.d(Constant.TestingLineOfRequest, line);
+                SpeedLimits = Integer.valueOf(SpeedLimit);
+                speedLimitValue.setText(String.valueOf(speedLimit));
                 break;
 
                 // process the line
             }
-            if(SpeedLimit==null){
-                SpeedLimit = "25";
+            if (SpeedLimit == null) {
+                //SpeedLimit = "25";
                 Log.d(Constant.SpeedLimitLogForNull, "The speed limit is :" + SpeedLimit);
+                requestfound = false;
                 //TODO Better algorithm to stays constant
 
             }
@@ -851,6 +917,66 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         */
         }
+        return SpeedLimits;
+    }
 
+
+    class UpdatingSpeedLimit extends AsyncTask<String, Void, Void> {
+        @Override
+        protected Void doInBackground(String... strings) {
+            checkWarning(currentSpeed, speedLimit);
+
+
+            if (lat != 0 || lon != 0) {
+                if (speedLimitCount == 0)
+                    getmaxSpeed(String.valueOf(lat), String.valueOf(lon), String.valueOf(lat + 0.0001), String.valueOf(lon + 0.0001));
+                else if (speedLimitCount >= 10 && speedLimitCount % 10 == 0) {
+                    getmaxSpeed(String.valueOf(lat), String.valueOf(lon), String.valueOf(lat + 0.0001), String.valueOf(lon + 0.0001));
+
+                }
+            }
+
+            if (requestfound == false) {
+                if (speedLimitCount == 0) {
+                    speedLimit = 25;
+                    speedLimitValue.setText(String.valueOf(speedLimit));
+                    checkWarning(currentSpeed, speedLimit);
+                }
+                if (speedLimitCount >= 10 && speedLimitCount % 10 == 0) {
+                    boolean flag = true;
+                    while (true) {
+                        int temp = getSpeedLimit();
+                        if (Math.abs(temp - currentSpeed) <= 30) {
+                            speedLimit = temp;
+                            speedLimitValue.setText(String.valueOf(speedLimit));
+                            checkWarning(currentSpeed, speedLimit);
+                            break;
+                        }
+                    }
+
+
+                }
+            } else {
+                checkWarning(currentSpeed, speedLimit);
+            }
+
+            Log.d("Done","Done background");
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void unused) {
+            super.onPostExecute(unused);
+
+            if (!silenceFlag) {//Silence flag is used to check whether or not we should use text too speech
+                if (playedSpeech != checkPlayedSpeech) {
+                    getSpeech(playedSpeech);
+                }
+            }
+            checkPlayedSpeech = playedSpeech;
+            Log.d("OnPost","Done onpost");
+
+        }
     }
 }
+
