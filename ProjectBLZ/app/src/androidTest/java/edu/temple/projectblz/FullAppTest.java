@@ -10,7 +10,6 @@ import static androidx.test.espresso.matcher.ViewMatchers.withText;
 
 import android.view.View;
 
-import androidx.lifecycle.Lifecycle;
 import androidx.test.core.app.ActivityScenario;
 import androidx.test.espresso.Espresso;
 import androidx.test.espresso.UiController;
@@ -28,19 +27,19 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+/**
+ * This test requires the user to not be logged in; If user is logged in, please logout of application first before running test.
+ */
 @LargeTest
 @RunWith(AndroidJUnit4.class)
 public class FullAppTest {
-
-    private ActivityScenario<LoginActivity> loginScenario;
 
     @Rule
     public ActivityScenarioRule<LoginActivity> loginActivityActivityScenarioRule = new ActivityScenarioRule<>(LoginActivity.class);
 
     @Before
     public void setup() {
-        loginScenario = ActivityScenario.launch(LoginActivity.class);
-        loginScenario.moveToState(Lifecycle.State.RESUMED);
+        ActivityScenario.launch(LoginActivity.class);
     }
 
     @Test
@@ -57,6 +56,13 @@ public class FullAppTest {
         onView(withId(R.id.passwordEditText)).perform(ViewActions.typeText(password));
         Espresso.closeSoftKeyboard();
         onView(withId(R.id.loginButton)).perform(click());
+
+        // in some cases, the view doesn't load fast enough; sleep for 1 second to allow for view to load
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         // test silent button
         onView(withId(R.id.silentButton)).perform(click());

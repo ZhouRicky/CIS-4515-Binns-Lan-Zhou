@@ -37,7 +37,7 @@ import java.util.Map;
 public class ParkingAdapter extends RecyclerView.Adapter<ParkingAdapter.MyViewHolder> {
 
     private Context context;
-    private ArrayList<LocationObject> listItem;
+    public ArrayList<LocationObject> listItem;
 
     public ParkingAdapter(Context context, ArrayList<LocationObject> listItem) {
         this.context = context;
