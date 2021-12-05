@@ -19,8 +19,8 @@ public class SharedPrefs {
         clearDriverId();
         clearIsLoggedIn();
         clearIsPermissionGranted();
-        //clearLatParked();
-        //clearLonParked();
+        clearLatParked();
+        clearLonParked();
     }
 
 
