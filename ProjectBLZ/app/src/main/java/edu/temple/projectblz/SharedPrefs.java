@@ -13,6 +13,7 @@ public class SharedPrefs {
         sharedPrefs = context.getSharedPreferences(Constant.SHARED_PREFS_NAME, Context.MODE_PRIVATE);
     }
 
+
     public void clearAllUserSettings() {
         clearLoggedInUser();
         clearPassword();

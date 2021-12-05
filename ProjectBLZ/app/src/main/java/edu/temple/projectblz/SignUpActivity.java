@@ -3,16 +3,15 @@ package edu.temple.projectblz;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
@@ -42,44 +41,37 @@ public class SignUpActivity extends AppCompatActivity {
 
         viewInitialization();
 
-        createAccountButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                statusTextView.setText("");
+        createAccountButton.setOnClickListener(view -> {
+            statusTextView.setText("");
 
-                if(firstNameEditText.getText() != null && lastNameEditText.getText() != null &&
-                        emailEditText.getText() != null && usernameEditText.getText() != null &&
-                        passwordEditText.getText() != null && confirmPasswordEditText.getText() != null) {
-                    firstName = firstNameEditText.getText().toString();
-                    lastName = lastNameEditText.getText().toString();
-                    email = emailEditText.getText().toString();
-                    username = usernameEditText.getText().toString();
-                    password = passwordEditText.getText().toString();
-                    confirmPassword = confirmPasswordEditText.getText().toString();
+            if(firstNameEditText.getText() != null && lastNameEditText.getText() != null &&
+                    emailEditText.getText() != null && usernameEditText.getText() != null &&
+                    passwordEditText.getText() != null && confirmPasswordEditText.getText() != null) {
+                firstName = firstNameEditText.getText().toString();
+                lastName = lastNameEditText.getText().toString();
+                email = emailEditText.getText().toString();
+                username = usernameEditText.getText().toString();
+                password = passwordEditText.getText().toString();
+                confirmPassword = confirmPasswordEditText.getText().toString();
 
-                    if(firstName.isEmpty() || lastName.isEmpty() || email.isEmpty() ||
-                            username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
-                        statusTextView.setText(Constant.ENTER_ALL_INFO);
-                    } else {
-                        if(password.equals(confirmPassword)) {
-                            createAccount();
-                        } else {
-                            statusTextView.setText(Constant.PW_DO_NOT_MATCH);
-                        }
-                    }
-                } else {
+                if(firstName.isEmpty() || lastName.isEmpty() || email.isEmpty() ||
+                        username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
                     statusTextView.setText(Constant.ENTER_ALL_INFO);
+                } else {
+                    if(password.equals(confirmPassword)) {
+                        createAccount();
+                    } else {
+                        statusTextView.setText(Constant.PW_DO_NOT_MATCH);
+                    }
                 }
+            } else {
+                statusTextView.setText(Constant.ENTER_ALL_INFO);
             }
         });
 
-        cancelEditText.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                finish();
-            }
-        });
+        cancelEditText.setOnClickListener(view -> finish());
     }
+
 
     // initialize necessary views
     private void viewInitialization() {
@@ -94,15 +86,12 @@ public class SignUpActivity extends AppCompatActivity {
         createAccountButton = findViewById(R.id.createAccountButton);
     }
 
+
     private void createAccount() {
         StringRequest stringRequest = new StringRequest(Request.Method.POST, Constant.REGISTER_URL,
                 response -> {
-
-                    Log.d("JSON", String.valueOf(response));
-
                     try {
                         JSONObject jsonObject = new JSONObject(response);
-
                         if(jsonObject.getString("status").equals("success")) {
                             Log.d("JSON", "success: " + jsonObject.getString("message"));
 
@@ -114,15 +103,13 @@ public class SignUpActivity extends AppCompatActivity {
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
-                        Toast.makeText(this, "try/catch error", Toast.LENGTH_SHORT).show();
+                        Log.d("SignUpActivity", String.valueOf(e));
                     }
                 },
-                error -> {
-                    VolleyLog.d("Error", "Error: " + error.getMessage());
-                }) {
-            @Nullable
+                error -> VolleyLog.d("Error", "Error: " + error.getMessage())) {
+            @NonNull
             @Override
-            protected Map<String, String> getParams() throws AuthFailureError {
+            protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
                 params.put("firstname", firstName);
                 params.put("lastname", lastName);

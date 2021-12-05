@@ -36,85 +36,74 @@ public class LocationService extends Service {
         listener = new LocationListener() {
             @Override
             public void onLocationChanged(@NonNull Location location) {
-                if (location != null){
-
-                    try{
-
-                        Log.d(Constant.CurrentSpeedLog, "The Current Speed is: " + location.getSpeed());
-                        Intent intent = new Intent("driverMood");
-                        intent.putExtra(Constant.LATITUDE, location.getLatitude());
-                        intent.putExtra(Constant.LONGITUDE, location.getLongitude());
-                        if(location.getSpeed() != 0) {
-                            Log.d("getSpeed", "Current speed: " + location.getSpeed());
-                            intent.putExtra(Constant.CURRENTSPEED, location.getSpeed());
-                        }
-                        //Log.d("tag3", "Longitude " + location.getLongitude());
-                        LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(context);
-                        localBroadcastManager.sendBroadcast(intent);
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        Log.d(Constant.ExceptionE_Locaation, String.valueOf(e));
+                try {
+                    Intent intent = new Intent("driverMood");
+                    intent.putExtra(Constant.LATITUDE, location.getLatitude());
+                    intent.putExtra(Constant.LONGITUDE, location.getLongitude());
+                    if(location.getSpeed() != 0) { //TODO: check here for speed changes
+                        intent.putExtra(Constant.CURRENTSPEED, location.getSpeed());
                     }
-
+                    LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(context);
+                    localBroadcastManager.sendBroadcast(intent);
+                } catch(Exception e) {
+                    e.printStackTrace();
+                    Log.d("LocationService", String.valueOf(e));
                 }
             }
 
             @Override
             public void onStatusChanged(String provider, int status, Bundle extras) {
-
             }
 
             @Override
             public void onProviderEnabled(@NonNull String provider) {
-
             }
 
             @Override
             public void onProviderDisabled(@NonNull String provider) {
-
             }
-
         };
 
         buildForegroundNotification();
-
     }
 
-    /**this class is to return the service*/
+
+    /**
+     * this class is to return the service
+     */
     public class MyLocalBinder extends Binder {
-        LocationService getService(){
+        LocationService getService() {
             return LocationService.this;
         }
     }
 
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED){
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             startForeground(Constant.FOREGROUND_SERVICE_ID, notification);
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-                    10, 1, listener);
-            //TODO Initializing the distance based of 1 meter and 10 ms but would need to change if needed
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10, 1, listener);
             Log.d(Constant.LOG_LOCATION, "The foreground location service has successfully started: Location Update Initialization is successful");
         }
 
         return super.onStartCommand(intent, flags, startId);
     }
 
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         return myBinder;
-
     }
+
 
     @Override
     public void onDestroy() {
         Log.i(Constant.LOG_LOCATION, "Location Service is onDestroy and the Location Service is eliminated");
         locationManager.removeUpdates(listener);
-        //Use Manager to remove the listener;
     }
+
 
     /**
      * Construct a notification to the user to let them know what we're doing with this service
@@ -128,6 +117,4 @@ public class LocationService extends Service {
                 .build();
         startForeground(Constant.FOREGROUND_SERVICE_ID, notification);
     }
-
-
 }

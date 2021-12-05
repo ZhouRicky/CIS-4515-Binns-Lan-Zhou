@@ -42,25 +42,16 @@ public class Constant {
     public static final String PW_DO_NOT_MATCH = "Passwords do not match.";
 
     /* MainActivity constants */
-    public static final int RequestCode_WriteSetting = 234;
     // constants for brightness
     public static final int Brightness_Zero = 0;
     public static final int Brightness_Max = 255;
-    // constant for RequestCode_Permission_WriteSetting
-    public static final int RequestCode_Permission_WriteSetting = 100;
-
-    //Constant for Speedlimit Request
+    // constant for Speedlimit Request
     public static final String SpeedLimitLinePrefix = "    <tag k=\"maxspeed\" ";
     public static final String SpeedLimitLogForResponse = "Speed Limit from Http Response";
     public static final String TestingLineOfRequest = "The Request Line as URL";
     public static final String SpeedLimitLogForNull = "The Speedlimit was null and set to default";
     public static final String VolleyErrorPrompt = "The volley has an error:";
     public static final String OverpassAPIPrefix = "http://www.overpass-api.de/api/xapi?*[maxspeed=*][bbox=";
-
-    //Constant for brightness
+    // constant for brightness
     public static final String BrightnessLog = "Value For Brightness";
-
-    //Constant for LocationService
-    public static final String CurrentSpeedLog = "CurrentSpeed";
-    public static final String ExceptionE_Locaation = "Exception Error Location";
 }

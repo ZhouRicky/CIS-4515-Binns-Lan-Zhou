@@ -98,75 +98,59 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private LocationManager locationManager;
     private Location myLocation;
     private LocationService myService;
-    private double lat, lon;
-    private int speedLimitCount = 0;
     private TextToSpeech textToSpeech;
-    private String username, password, driverId;
-    private int playedSpeech = 0;
-    private int checkPlayedSpeech = 0;
     private TextView speedLimitValue, currentSpeedValue;
-    private int currentSpeed = 0;
-    public int speedLimit = 15;
-    public int color;
-    private boolean speedFlag = false;
-    private boolean silenceFlag = false;
-    private ImageButton speakButton;
-    private ImageButton silentButton;
-    boolean requestfound = false;
-    RequestQueue queue;
+    private ImageButton speakButton, silentButton;
 
-    private int[] speedArray = {15, 20, 25, 30, 35, 40, 45, 50, 55};
+    private double lat, lon;
+    private int speedLimitCount = 0, playedSpeech = 0, checkPlayedSpeech = 0, currentSpeed = 0;
+    public int speedLimit = 15, color;
+    private String username, password, driverId;
+    private boolean speedFlag = false, silenceFlag = false, requestfound = false;
+    private final int[] speedArray = {15, 20, 25, 30, 35, 40, 45, 50, 55};
 
     CardView currentSpeedCard;
     DrawerLayout drawerLayout;
     ActionBarDrawerToggle toggle;
     NavigationView navigationView;
 
-    //Initializing a sensor, sensormanager
+    // Initializing sensors, SensorManager
     SensorManager sensorManager;
-    Sensor LightSensor, AccelerometerSensor;
+    Sensor lightSensor, accelerometerSensor;
+
+    RequestQueue queue;
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-      
+
+        // TODO: check
         new DefaultRetryPolicy(0, -1, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
-        /* ensures that the map has a writable location for the map cache*/
+
+        // ensures that the map has a writable location for the map cache
         Configuration.getInstance().load(getApplication(), PreferenceManager.getDefaultSharedPreferences(getApplication()));
         sharedPrefs = new SharedPrefs(this);
         queue = Volley.newRequestQueue(this);
 
-
-        //request location & writing to system permission
-        //initialization of the sensor and manager
+        // initialization of the sensor and manager
         Initialization();
 
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, new IntentFilter("driverMood"));
-        // TODO: Get all of those into Initialization(). easier to read
-        //  RZ comment: maybe
-
         createNotificationChannel();
-
         getStartService();
 
         locationManager = getSystemService(LocationManager.class);
 
         checkPermission();
-        locationList = new ArrayList<>();
-        speedLimitValue = findViewById(R.id.speedLimitValueTextView);
-        currentSpeedValue = findViewById(R.id.currentSpeedValueTextView);
-        currentSpeedCard = findViewById(R.id.currentSpeedCardView);
 
+        locationList = new ArrayList<>();
         username = sharedPrefs.getLoggedInUser();
         password = sharedPrefs.getPassword();
         driverId = sharedPrefs.getDriverId();
 
-        silentButton = findViewById(R.id.silentButton);
-        speakButton = findViewById(R.id.speakButton);
-
-        /* text to speech will be on by default*/
+        // text to speech will be on by default
         silentButton.setOnClickListener(v -> {
             speakButton.setVisibility(View.VISIBLE);
             silentButton.setVisibility(View.INVISIBLE);
@@ -179,16 +163,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             silenceFlag = false;
         });
 
-
         // ================================================================================
         //      Navigation Drawer Code Start
         // ================================================================================
-
         // drawer layout instance to toggle the menu icon to open
         // drawer and back button to close drawer
-        drawerLayout = findViewById(R.id.myDrawerLayout);
-        navigationView = findViewById(R.id.myNavigationView);
-        // navigationView.setBackgroundColor(Color.BLUE);
         toggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.nav_open, R.string.nav_close);
 
         // pass the Open and Close toggle for the drawer layout listener
@@ -200,19 +179,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
         navigationView.setNavigationItemSelectedListener(this);
-
         // ================================================================================
         //      Navigation Drawer Code End
         // ================================================================================
 
-        //map initialization
-
-        map = (MapView) findViewById(R.id.map);
+        // map initialization
         map.setTileSource(TileSourceFactory.MAPNIK);
         map.setBuiltInZoomControls(true);
         map.setMultiTouchControls(true);
-
         mapController = map.getController();
+
         if (myLocation != null) {
             startPoint = new GeoPoint(myLocation.getLatitude(), myLocation.getLongitude());
             mapController.setCenter(startPoint);
@@ -221,70 +197,59 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             startMarker.setPosition(startPoint);
             startMarker.setTitle("You are here");
         }
-
         drawable = getResources().getDrawable(R.drawable.red_car_marker);
-        //if(drawable!=null){
+
         try {
             startMarker.setIcon(drawable);
             startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         map.getOverlays().add(startMarker);
 
         findViewById(R.id.saveParkButton).setOnClickListener(v -> {
-            AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this)
+            new AlertDialog.Builder(this)
                     .setTitle("Save Parking Location")
                     .setMessage("Do you want to save your parking location?")
-                    .create();
-
-            alertDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Yes", (dialog, which) -> savePark());
-
-            alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, "No", (dialog, which) -> dialog.cancel());
-
-            alertDialog.show();
+                    .setNegativeButton("Yes", (dialog, which) -> savePark())
+                    .setPositiveButton("No", (dialog, which) -> dialog.cancel())
+                    .show();
         });
+
         textToSpeech = new TextToSpeech(getApplicationContext(), status -> {
             if (status == TextToSpeech.SUCCESS) {
                 int result = textToSpeech.setLanguage(Locale.ENGLISH);
 
                 if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    Log.d("mtag", "Language not supported ");
+                    Log.d("TextToSpeech", "Language not supported");
                 }
             } else {
-                Log.d("mtag", "Initialization failed");
+                Log.d("TextToSpeech", "Initialization failed");
             }
         });
-        textToSpeech.speak("testing testing 1 2 3", TextToSpeech.QUEUE_FLUSH, null, null);
     }
 
-    /**
-     * this will refresh the osmdroid configuration on resuming
-     * Registering Listener
-     */
+
+    @Override
     public void onResume() {
         super.onResume();
         checkPermission();
-        //map.onResume();
 
-        // TODO: this should also go into onCreate?
-        //register light sensor and accelerometer sensor
-        sensorManager.registerListener(this, LightSensor, sensorManager.SENSOR_DELAY_NORMAL);
-        sensorManager.registerListener(this, AccelerometerSensor, sensorManager.SENSOR_DELAY_NORMAL);
+        // register light sensor and accelerometer sensor
+        sensorManager.registerListener(this, lightSensor, sensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(this, accelerometerSensor, sensorManager.SENSOR_DELAY_NORMAL);
     }
 
-    /**
-     * this will enable osmdroid to be refreshed
-     * UnregisterListener
-     */
+
+    @Override
     public void onPause() {
         super.onPause();
         map.onPause();
-        //onpause unregister the sensor
+
+        // unregister the sensor
         sensorManager.unregisterListener(this);
     }
+
 
     @Override
     protected void onDestroy() {
@@ -296,16 +261,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onDestroy();
     }
 
-    /*initialization of
-               1.sensor Manager
-               2.Light Sensor
-               3.AccelerometerSensor
-         */
+
     private void Initialization() {
+        speedLimitValue = findViewById(R.id.speedLimitValueTextView);
+        currentSpeedValue = findViewById(R.id.currentSpeedValueTextView);
+        currentSpeedCard = findViewById(R.id.currentSpeedCardView);
+        silentButton = findViewById(R.id.silentButton);
+        speakButton = findViewById(R.id.speakButton);
+        drawerLayout = findViewById(R.id.myDrawerLayout);
+        navigationView = findViewById(R.id.myNavigationView);
+        map = findViewById(R.id.map);
         sensorManager = (SensorManager) getSystemService(Service.SENSOR_SERVICE);
-        LightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
-        AccelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+        accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
     }
+
 
     // uses dexter library to check for permissions at runtime
     private void checkPermission() {
@@ -347,25 +317,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    // TODO: Implement Alert notify brightness caution
-    //  RZ comment: I changed the permission check code, so see where this can fit
 
-
-    /**
-     * this function saves the drivers parking location
-     */
+    // save parking location
     private void savePark() {
         StringRequest stringRequest = new StringRequest(Request.Method.POST, Constant.PARK_URL,
                 response -> {
-                    Log.d("mtag", "came60 " + "sup");
-                    Log.d("JSON", String.valueOf(response));
-
                     try {
                         JSONObject jsonObject = new JSONObject(response);
-
                         if (jsonObject.getString("status").equals("success")) {
                             sharedPrefs.setLatParked(String.valueOf(lat));
-                            Log.d("mtag", "came61 " + "sup2");
                             sharedPrefs.setLonParked(String.valueOf(lon));
                             Toast.makeText(this, "Location saved", Toast.LENGTH_SHORT).show();
                             Log.d("JSON", "success: " + jsonObject.getString("message"));
@@ -374,7 +334,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
-                        Toast.makeText(this, "try/catch error", Toast.LENGTH_SHORT).show();
+                        Log.d("MainActivity", String.valueOf(e));
                     }
                 },
                 error -> VolleyLog.d("Error", "Error: " + error.getMessage())) {
@@ -392,18 +352,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         RequestHandler.getInstance(this).addToRequestQueue(stringRequest);
     }
 
+
+    // show saved parking location history
     private void parkingHistory() {
         StringRequest stringRequest = new StringRequest(Request.Method.POST, Constant.HISTORY_URL,
                 response -> {
-
                     try {
                         JSONObject jsonObject = new JSONObject(response);
-
                         if (jsonObject.getString("status").equals("success")) {
                             JSONArray jsonArray = jsonObject.getJSONArray("data");
                             getArraylist(jsonArray);
 
-                            /* send over the list of locations from db with this intent*/
+                            // send over the list of locations from db with this intent
                             Intent newIntent = new Intent(MainActivity.this, ParkingItemsActivity.class);
                             newIntent.putExtra(Constant.LOCATIONLIST, locationList);
                             startActivity(newIntent);
@@ -413,7 +373,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
-                        Toast.makeText(this, "try/catch error", Toast.LENGTH_SHORT).show();
+                        Log.d("MainActivity", String.valueOf(e));
                     }
                 },
                 error -> VolleyLog.d("Error", "Error: " + error.getMessage())) {
@@ -431,9 +391,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         RequestHandler.getInstance(this).addToRequestQueue(stringRequest);
     }
 
-    /**
-     * connect to the service
-     */
+
+    // connect to service
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -442,12 +401,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-
         }
     };
 
-    /* this function starts a service*/
-    private void getStartService(){
+
+    // start service
+    private void getStartService() {
         Intent intent = new Intent(this, LocationService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(intent);
@@ -457,41 +416,40 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
-    /* this function end a service*/
-    private void getEndService(){
+
+    // end service
+    private void getEndService() {
         Intent intent = new Intent(this, LocationService.class);
         unbindService(serviceConnection);
         stopService(intent);
     }
 
-    /* a notification is required for a foreground service*/
+
+    // notification for foreground service
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void createNotificationChannel() {
-        NotificationChannel notificationChannel = new NotificationChannel(
-                "driver"
-                , "Start Driving"
-                , NotificationManager.IMPORTANCE_DEFAULT
-        );
-
+        NotificationChannel notificationChannel = new NotificationChannel("driver", "Start Driving", NotificationManager.IMPORTANCE_DEFAULT);
         NotificationManager notificationManager = getSystemService(NotificationManager.class);
         notificationManager.createNotificationChannel(notificationChannel);
     }
 
-    /* receive the driver location from services*/
+
+    // TODO: fix
+    // receiver for driver's location
     private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
 
         @Override
         public void onReceive(Context context, Intent intent) {
             speedLimitCount++;
 
-            /* get data from location services*/
+            // get data from location services
             lat = intent.getDoubleExtra(Constant.LATITUDE, 0);
             lon = intent.getDoubleExtra(Constant.LONGITUDE, 0);
 
-            /* set a flag to ensure starting speed, and get current speed from location services*/
-            if(speedFlag){
+            // set a flag to ensure starting speed, and get current speed from location services
+            if (speedFlag) {
                 currentSpeed = (int) intent.getFloatExtra(Constant.CURRENTSPEED, 0);
-                if(currentSpeed != 0) {
+                if (currentSpeed != 0) {
                     currentSpeedValue.setText(String.valueOf(currentSpeed));
                 }
             } else {
@@ -502,18 +460,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             //new UpdatingSpeedLimit().execute();
 
-            /* get the speed limit for the current road segment*/
-            if((speedLimitCount % 10) == 0){
+            // get the speed limit for the current road segment
+            if ((speedLimitCount % 10) == 0) {
                 speedLimit = getSpeedLimit();
                 speedLimitValue.setText(String.valueOf(speedLimit));
             }
 
-            /* check if we need to send a warning to driver - see if they are approaching the speed limit */
+            // check if we need to send a warning to driver - see if they are approaching the speed limit
             checkWarning(currentSpeed, speedLimit);
             currentSpeedCard.setCardBackgroundColor(color);
 
-            /* playedspeech is a value assigned to a string that has just been played, check played ensures we don't give the same warning back to back*/
-            if(!silenceFlag) {//Silence flag is used to check whether or not we should use text too speech
+            // playedspeech is a value assigned to a string that has just been played, check played ensures we don't give the same warning back to back
+            if (!silenceFlag) {//Silence flag is used to check whether or not we should use text too speech
                 Log.d("Speech", "playedSpeech: " + playedSpeech + "   checkPlayedSpeech: " + checkPlayedSpeech);
                 if (playedSpeech != checkPlayedSpeech) {
                     getSpeech(playedSpeech);
@@ -521,7 +479,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
             checkPlayedSpeech = playedSpeech;
 
-            //TODO: when car stops, speed should be zero, check how to send such message - we collect speed in broadcast receiver
+            // TODO: when car stops, speed should be zero, check how to send such message - we collect speed in broadcast receiver
             Log.d("lat", "this lat " + lat);
             if (startMarker == null) {
                 startPoint.setCoords(lat, lon);
@@ -529,8 +487,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 startMarker.setTitle("You are here");
                 drawable = getResources().getDrawable(R.drawable.red_car_marker);
                 startMarker.setIcon(drawable);
-                //startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-                // map.getOverlays().add(startMarker);
             } else {
                 GeoPoint geoPoint = new GeoPoint(lat, lon);
                 startPoint.setCoords(lat, lon);
@@ -545,24 +501,28 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     };
 
-    /**populate an arraylist with database parking info*/
+
+    // populate an arraylist with database parking info
     private void getArraylist(JSONArray list) throws JSONException {
         final int arraySize = list.length();
-        for(int i = 0; i < arraySize; i++) {
+        for (int i = 0; i < arraySize; i++) {
             JSONObject object = list.getJSONObject(i);
             locationList.add(new LocationObject(object.getDouble(Constant.LATITUDE), object.getDouble(Constant.LONGITUDE), object.getInt(Constant.PARK_ID), object.getString(Constant.CREATED_AT), object.getInt(Constant.DRIVER_ID)));
         }
     }
 
-    protected int getSpeedLimit(){
+
+    protected int getSpeedLimit() {
         Random random = new Random();
         int limit;
         limit = speedArray[random.nextInt(speedArray.length)];
         return limit;
     }
 
-    /**this function gives the speed warning*/
-    public void checkWarning(int currentSpeed, int speedLimit){
+
+    // TODO: fix
+    // this function gives the speed warning
+    public void checkWarning(int currentSpeed, int speedLimit) {
       /*
         int statement1 = (Integer.valueOf(speedLimitValue.getText().toString()) - Integer.valueOf(currentSpeedValue.getText().toString()));
         int statement2 =(Integer.valueOf(currentSpeedValue.getText().toString()) - Integer.valueOf(speedLimitValue.getText().toString()));
@@ -587,34 +547,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             playedSpeech = 3;
         }
         */
-      
-        if((speedLimit - currentSpeed) <= 3 && (speedLimit - currentSpeed) > 0){
-            //String preWarning = "You are approaching the speed limit";
+
+        if ((speedLimit - currentSpeed) <= 3 && (speedLimit - currentSpeed) > 0) {
             color = Color.YELLOW;
-            //textToSpeech.speak(preWarning, TextToSpeech.QUEUE_ADD, null, null);
             playedSpeech = 1;
-        }
-        else if((speedLimit - currentSpeed) == 0){
-            //String atLimit = "You are at the speed limit";
+        } else if ((speedLimit - currentSpeed) == 0) {
             color = Color.MAGENTA;
-            //textToSpeech.speak(atLimit, TextToSpeech.QUEUE_ADD, null, null);
             playedSpeech = 2;
-        }
-        else if((currentSpeed - speedLimit) >= 5){
-            //String postWarning = "You are over the speed limit";
+        } else if ((currentSpeed - speedLimit) >= 5) {
             color = Color.RED;
-            //textToSpeech.speak(postWarning, TextToSpeech.QUEUE_ADD, null, null);
             playedSpeech = 3;
-        }
-        else if((speedLimit - currentSpeed) >= 5){
+        } else if ((speedLimit - currentSpeed) >= 5) {
             color = Color.WHITE;
             playedSpeech = 0;
         }
     }
 
-    /**this function plays the appropriate speech for the speed the driver is going*/
-    private void getSpeech(int value){
-        switch (value){
+
+    // this function plays the appropriate speech for the speed the driver is going
+    private void getSpeech(int value) {
+        switch (value) {
             case 1:
                 String preWarning = "You are approaching the speed limit";
                 textToSpeech.speak(preWarning, TextToSpeech.QUEUE_ADD, null, null);
@@ -634,6 +586,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+
     /**
      * menu items to be selected
      */
@@ -651,16 +604,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (toggle.onOptionsItemSelected(item)) {
             return true;
         }
+
         return super.onOptionsItemSelected(item);
     }
 
-    @Override//options for share button
+
+    // options for share button
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.share_menu, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
 
+    // for navigation drawer
     @Override
     public void onBackPressed() {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
@@ -670,21 +627,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+
+    // for navigation drawer
     @SuppressLint("NonConstantResourceId")
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-
-
-        switch (item.getItemId()) {//TODO: TEST THE CONDITION OF THE IF STATEMENT
+        switch (item.getItemId()) {
             case R.id.nav_last_parked:
-                if (sharedPrefs.getLonParked() != "None" || sharedPrefs.getLatParked() != null) {
-                   /* Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
-                    Uri.parse(Constant.GOOGLE_MAP_URL + Double.valueOf(sharedPrefs.getLatParked()) + "," + Double.valueOf(sharedPrefs.getLonParked())));
-                    startActivity(intent);*/
-                    Log.d("mtag", "CAME HERE 41 " + sharedPrefs.getLatParked());
+                if (sharedPrefs.getLatParked() != null && sharedPrefs.getLonParked() != null &&
+                        !sharedPrefs.getLatParked().equals(Constant.SHARED_PREFS_DEFAULT_STRING) &&
+                        !sharedPrefs.getLonParked().equals(Constant.SHARED_PREFS_DEFAULT_STRING)) {
                     getLastAddress();
                 } else {
-                    Toast.makeText(this, "No recent parked location, please check parking history", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "No recent parking location, please check your parking history", Toast.LENGTH_LONG).show();
                 }
                 break;
             case R.id.nav_parking_history:
@@ -701,52 +656,50 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return true;
     }
 
+
     private void getLastAddress() {
-        //String addressReturned = ;
-        /* confirm if the driver wants to navigate to the address found in the list*/
+        // confirm if the driver wants to navigate to the address found in the list
         new AlertDialog.Builder(this)
                 .setIcon(android.R.drawable.ic_menu_directions)
                 .setTitle(showAddress(Double.parseDouble(sharedPrefs.getLatParked()), Double.parseDouble(sharedPrefs.getLonParked())))
                 .setMessage("Do you want to navigate to this address?")
-                .setNegativeButton("Yes", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
-                                Uri.parse(Constant.GOOGLE_MAP_URL + Double.valueOf(sharedPrefs.getLatParked()) + "," + Double.valueOf(sharedPrefs.getLonParked())));
-                        startActivity(intent);
-                    }
+                .setNegativeButton("Yes", (dialog, which) -> {
+                    Intent intent = new Intent(Intent.ACTION_VIEW,
+                            Uri.parse(Constant.GOOGLE_MAP_URL + Double.valueOf(sharedPrefs.getLatParked()) + "," + Double.valueOf(sharedPrefs.getLonParked())));
+                    startActivity(intent);
                 })
-                .setPositiveButton("No", null)
+                .setPositiveButton("No", (dialog, which) -> dialog.cancel())
                 .show();
-
     }
 
+
     /**
-     * this function gets the actual address form the lat and lon coordinates
+     * this function gets the actual address from the lat and lon coordinates
      */
     public String showAddress(double lat, double lon) {
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
         List<Address> addresses = null;
         String address = null;
 
-        /* try catch  - to prevent null exceptions*/
         try {
-            /* Here 1 represent max location result to returned, by documents it recommended 1 to 5*/
+            // Here 1 represent max location result to returned, by documents it recommended 1 to 5
             addresses = geocoder.getFromLocation(lat, lon, 1);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        /* double check if address is empty*/
+        // double check if address is empty
         if (addresses == null || addresses.size() == 0) {
             Toast.makeText(this, "Sorry, no address found ", Toast.LENGTH_SHORT).show();
         } else {
-            /* If any additional address line present than only 1, check with max available address lines by getMaxAddressLineIndex()*/
+            // If any additional address line present than only 1, check with max available address lines by getMaxAddressLineIndex()
             address = addresses.get(0).getAddressLine(0);
         }
         return address;
     }
 
+
+    // TODO: do we need?
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
         if (sensorEvent.sensor.getType() == Sensor.TYPE_LIGHT) {
@@ -754,9 +707,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+
+    // TODO: do we need?
     private void setBrightness(int brightness) {
         // TODO: Implement Algorithm for brightness control
-        //  RZ comment: this doesn't really do anything rn
+        //  RZ comment: this doesn't do anything
 
         if (brightness < Constant.Brightness_Zero) {
             brightness = Constant.Brightness_Zero;
@@ -766,14 +721,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Log.d(Constant.BrightnessLog, "Brightness is: " + brightness);
         ContentResolver contentResolver = getApplicationContext().getContentResolver();
         Settings.System.putInt(contentResolver, Settings.System.SCREEN_BRIGHTNESS, brightness);
-
     }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int i) {
-        // TODO: override for interface, would have to implement if needed for accerlerometer sensor
     }
 
+
+    // TODO: try to incorporate everything after this line
+    /*
     public void getmaxSpeed(String latitude, String longitude, String maxlat, String maxlon) {
         String RequestURL = Constant.OverpassAPIPrefix + longitude + "," + latitude + "," + maxlon + "," + maxlat + "]";
         StringRequest stringRequest = new StringRequest(Request.Method.POST, RequestURL, new Response.Listener<String>() {
@@ -782,135 +738,127 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 speedLimit = responseParse(response);
                 Log.d(Constant.TestingLineOfRequest, RequestURL);
 
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.d(Constant.VolleyErrorPrompt, error.toString());
-            }
-        }) {
-
-        };
-        queue.add(stringRequest);
-
-    }
-
-
-    public int responseParse(String response) {
-        Scanner scanner = new Scanner(response);
-        String SpeedLimit = null;
-        int SpeedLimits = -1;
-        while (scanner.hasNextLine()) {
-            String line = scanner.nextLine();
-            if (line.startsWith(Constant.SpeedLimitLinePrefix)) {
-                requestfound = true;
-                SpeedLimit = line.replaceAll("[^0-9]", "");
-                Log.d(Constant.SpeedLimitLogForResponse, "The speed limit is :" + SpeedLimit);
-                Log.d(Constant.TestingLineOfRequest, line);
-                SpeedLimits = Integer.valueOf(SpeedLimit);
-                speedLimitValue.setText(String.valueOf(speedLimit));
-                break;
-
-                // process the line
-            }
-            if (SpeedLimit == null) {
-                //SpeedLimit = "25";
-                Log.d(Constant.SpeedLimitLogForNull, "The speed limit is :" + SpeedLimit);
-                requestfound = false;
-                //TODO Better algorithm to stays constant
-
+                queue.add(stringRequest);
             }
 
-       /* try {
-            //get json object from (whole) response string
-            JSONObject responseObj = XML.toJSONObject(response);
-            Log.d("Array",response.toString());
-            //pull out jsonArray (of elements) from object
-            JSONArray responseArr = responseObj.getJSONArray("meta");
+            public int responseParse(String response) {
+                Scanner scanner = new Scanner(response);
+                String SpeedLimit = null;
+                int SpeedLimits = -1;
+                while (scanner.hasNextLine()) {
+                    String line = scanner.nextLine();
+                    if (line.startsWith(Constant.SpeedLimitLinePrefix)) {
+                        requestfound = true;
+                        SpeedLimit = line.replaceAll("[^0-9]", "");
+                        Log.d(Constant.SpeedLimitLogForResponse, "The speed limit is :" + SpeedLimit);
+                        Log.d(Constant.TestingLineOfRequest, line);
+                        SpeedLimits = Integer.valueOf(SpeedLimit);
+                        speedLimitValue.setText(String.valueOf(speedLimit));
+                        break;
 
-            //empty previous road list
-            roadArrList = new ArrayList<>();
+                        // process the line
+                    }
+                    if (SpeedLimit == null) {
+                        //SpeedLimit = "25";
+                        Log.d(Constant.SpeedLimitLogForNull, "The speed limit is :" + SpeedLimit);
+                        requestfound = false;
+                        //TODO Better algorithm to stays constant
 
-            //for each element item in json array
-            for (int i = 0; i < responseArr.length(); i++) {
-                //convert element to string of contents
-                String elementStr = responseArr.getString(i);
-                //create individual element object from (whole) element string
-                JSONObject elementObj = new JSONObject(elementStr);
+                    }
 
-                //pass element (road) for road data string extraction (and adding to list)
-                getCardData(elementObj);
+               /* try {
+                    //get json object from (whole) response string
+                    JSONObject responseObj = XML.toJSONObject(response);
+                    Log.d("Array",response.toString());
+                    //pull out jsonArray (of elements) from object
+                    JSONArray responseArr = responseObj.getJSONArray("meta");
 
-            }
-        } catch (Exception e) {
-            //todo: handle error
-            e.printStackTrace();
-        }
+                    //empty previous road list
+                    roadArrList = new ArrayList<>();
 
-        //set recyclerView with road cards
+                    //for each element item in json array
+                    for (int i = 0; i < responseArr.length(); i++) {
+                        //convert element to string of contents
+                        String elementStr = responseArr.getString(i);
+                        //create individual element object from (whole) element string
+                        JSONObject elementObj = new JSONObject(elementStr);
 
-        */
-        }
-        return SpeedLimits;
-    }
+                        //pass element (road) for road data string extraction (and adding to list)
+                        getCardData(elementObj);
 
-
-    class UpdatingSpeedLimit extends AsyncTask<String, Void, Void> {
-        @Override
-        protected Void doInBackground(String... strings) {
-            checkWarning(currentSpeed, speedLimit);
-
-
-            if (lat != 0 || lon != 0) {
-                if (speedLimitCount == 0)
-                    getmaxSpeed(String.valueOf(lat), String.valueOf(lon), String.valueOf(lat + 0.0001), String.valueOf(lon + 0.0001));
-                else if (speedLimitCount >= 10 && speedLimitCount % 10 == 0) {
-                    getmaxSpeed(String.valueOf(lat), String.valueOf(lon), String.valueOf(lat + 0.0001), String.valueOf(lon + 0.0001));
-
+                    }
+                } catch (Exception e) {
+                    //todo: handle error
+                    e.printStackTrace();
                 }
+
+                //set recyclerView with road cards
+
+                */
+    /*
+                }
+                return SpeedLimits;
             }
 
-            if (requestfound == false) {
-                if (speedLimitCount == 0) {
-                    speedLimit = 25;
-                    speedLimitValue.setText(String.valueOf(speedLimit));
+            class UpdatingSpeedLimit extends AsyncTask<String, Void, Void> {
+                @Override
+                protected Void doInBackground(String... strings) {
                     checkWarning(currentSpeed, speedLimit);
-                }
-                if (speedLimitCount >= 10 && speedLimitCount % 10 == 0) {
-                    boolean flag = true;
-                    while (true) {
-                        int temp = getSpeedLimit();
-                        if (Math.abs(temp - currentSpeed) <= 30) {
-                            speedLimit = temp;
-                            speedLimitValue.setText(String.valueOf(speedLimit));
-                            checkWarning(currentSpeed, speedLimit);
-                            break;
+
+
+                    if (lat != 0 || lon != 0) {
+                        if (speedLimitCount == 0)
+                            getmaxSpeed(String.valueOf(lat), String.valueOf(lon), String.valueOf(lat + 0.0001), String.valueOf(lon + 0.0001));
+                        else if (speedLimitCount >= 10 && speedLimitCount % 10 == 0) {
+                            getmaxSpeed(String.valueOf(lat), String.valueOf(lon), String.valueOf(lat + 0.0001), String.valueOf(lon + 0.0001));
+
                         }
                     }
 
+                    if (requestfound == false) {
+                        if (speedLimitCount == 0) {
+                            speedLimit = 25;
+                            speedLimitValue.setText(String.valueOf(speedLimit));
+                            checkWarning(currentSpeed, speedLimit);
+                        }
+                        if (speedLimitCount >= 10 && speedLimitCount % 10 == 0) {
+                            boolean flag = true;
+                            while (true) {
+                                int temp = getSpeedLimit();
+                                if (Math.abs(temp - currentSpeed) <= 30) {
+                                    speedLimit = temp;
+                                    speedLimitValue.setText(String.valueOf(speedLimit));
+                                    checkWarning(currentSpeed, speedLimit);
+                                    break;
+                                }
+                            }
+
+
+                        }
+                    } else {
+                        checkWarning(currentSpeed, speedLimit);
+                    }
+
+                    Log.d("Done", "Done background");
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(Void unused) {
+                    super.onPostExecute(unused);
+
+                    if (!silenceFlag) {//Silence flag is used to check whether or not we should use text too speech
+                        if (playedSpeech != checkPlayedSpeech) {
+                            getSpeech(playedSpeech);
+                        }
+                    }
+                    checkPlayedSpeech = playedSpeech;
+                    Log.d("OnPost", "Done onpost");
 
                 }
-            } else {
-                checkWarning(currentSpeed, speedLimit);
             }
-
-            Log.d("Done","Done background");
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void unused) {
-            super.onPostExecute(unused);
-
-            if (!silenceFlag) {//Silence flag is used to check whether or not we should use text too speech
-                if (playedSpeech != checkPlayedSpeech) {
-                    getSpeech(playedSpeech);
-                }
-            }
-            checkPlayedSpeech = playedSpeech;
-            Log.d("OnPost","Done onpost");
-
-        }
+        });
     }
+     */
 }
 
