@@ -30,7 +30,7 @@ public class MainActivityTest {
     @Test
     public void testSpeedLimitValueIsFifteen() {
         speedLimit = mainActivity.speedLimit;
-        assertEquals("Should be initially set to 15", 15, speedLimit);
+        assertEquals("Should be initially set to 25", 25, speedLimit);
     }
 
     // test the speed limit array values, ensuring that one of the values in the array set is returned
