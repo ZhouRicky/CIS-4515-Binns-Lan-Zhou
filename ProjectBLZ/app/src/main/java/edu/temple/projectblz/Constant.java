@@ -42,10 +42,10 @@ public class Constant {
     public static final String PW_DO_NOT_MATCH = "Passwords do not match.";
 
     /* MainActivity constants */
-    public static final int RequestCode_WriteSetting = 234;
     // constants for brightness
     public static final int Brightness_Zero = 0;
     public static final int Brightness_Max = 255;
-    // constant for RequestCode_Permission_WriteSetting
-    public static final int RequestCode_Permission_WriteSetting = 100;
+    // constant for Speedlimit Request
+    public static final String SpeedLimitLinePrefix = "    <tag k=\"maxspeed\" ";
+    public static final String OverpassAPIPrefix = "http://www.overpass-api.de/api/xapi?*[maxspeed=*][bbox=";
 }

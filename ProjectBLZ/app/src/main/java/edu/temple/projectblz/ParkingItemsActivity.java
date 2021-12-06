@@ -13,13 +13,13 @@ import android.widget.ImageView;
 import java.util.ArrayList;
 
 public class ParkingItemsActivity extends AppCompatActivity {
+
     private RecyclerView recyclerView;
     private ParkingAdapter parkingAdapter;
     private ArrayList<LocationObject> listItem = new ArrayList<>();
     ImageView imageView;
 
     @Override
-    @SuppressWarnings("unchecked")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_parking_items);
@@ -29,18 +29,17 @@ public class ParkingItemsActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.parkingItemsRecyclerView);
         imageView = findViewById(R.id.deleteImageView);
 
-      
-        /* Our Location Object list - gets its data from an intent, which got the items from mainactivity - getArraylist function */
+        // Our Location Object list - gets its data from an intent, which got the items from mainactivity - getArraylist function
         listItem = (ArrayList<LocationObject>) getIntent().getSerializableExtra(Constant.LOCATIONLIST);
         setAdapter();
 
-
-        /* this button closes the history of parking list */
+        // this button closes the history of parking list
         findViewById(R.id.closeItemBtn).setOnClickListener(v -> {
             startActivity(new Intent(ParkingItemsActivity.this, MainActivity.class));
             finish();
         });
     }
+
 
     private void setAdapter() {
         parkingAdapter = new ParkingAdapter(this, listItem);

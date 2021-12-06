@@ -5,6 +5,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import android.graphics.Color;
 
@@ -29,24 +30,18 @@ public class MainActivityTest {
     @Test
     public void testSpeedLimitValueIsFifteen() {
         speedLimit = mainActivity.speedLimit;
-        assertEquals("Should be initially set to 15", 15, speedLimit);
+        assertEquals("Should be initially set to 25", 25, speedLimit);
     }
 
     // test the speed limit array values, ensuring that one of the values in the array set is returned
     @Test
     public void testSpeedLimitArrayValues(){
-        boolean checked15 = false, checked20 = false, checked25 = false, checked30 = false, checked35 = false, checked40 = false, checked45 = false, checked50 = false, checked55 = false;
+        boolean checked25 = false, checked30 = false, checked35 = false, checked40 = false, checked45 = false, checked50 = false, checked55 = false;
 
-        while(!checked15 || !checked20 || !checked25 || !checked30 || !checked35 || !checked40 || !checked45 || !checked50 || !checked55) {
+        while(!checked25 || !checked30 || !checked35 || !checked40 || !checked45 || !checked50 || !checked55) {
             speedLimit = mainActivity.getSpeedLimit();
-            assertThat("Should match any of the speed values within array", speedLimit, anyOf(is(15), is(20), is(25), is(30), is(35), is(40), is(45), is(50), is(55)));
+            assertThat("Should match any of the speed values within array", speedLimit, anyOf(is(25), is(30), is(35), is(40), is(45), is(50), is(55)));
             switch(speedLimit) {
-                case 15:
-                    checked15 = true;
-                    break;
-                case 20:
-                    checked20 = true;
-                    break;
                 case 25:
                     checked25 = true;
                     break;
@@ -104,5 +99,23 @@ public class MainActivityTest {
     public void testParkingHistoryArrayListShouldBeNull() {
         assertNull("Should be null on initialization", listItem);
         assertNull("Should be null on initialization", parkingAdapter.listItem);
+    }
+
+    // test while loop for speed limit randomizer
+    @Test
+    public void testLoopForSpeedLimits() {
+        boolean isLessThan = false;
+        int currSpeedLimit = 25;
+
+        speedLimit = mainActivity.getSpeedLimit();
+        while(Math.abs(speedLimit - currSpeedLimit) > 15) {
+            speedLimit = mainActivity.getSpeedLimit();
+        }
+
+        if(speedLimit <= currSpeedLimit + 15) {
+            isLessThan = true;
+        }
+
+        assertTrue(isLessThan);
     }
 }
