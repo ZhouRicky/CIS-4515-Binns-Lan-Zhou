@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ProjectBLZ</string>
+    <string name="app_name">Driver Assist</string>
     <string name="login_title">Log In</string>
     <string name="login_button">Log in</string>
     <string name="first_time_here">First time here?</string>
