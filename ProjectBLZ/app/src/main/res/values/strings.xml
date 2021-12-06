@@ -15,7 +15,7 @@
     <string name="email_hint">Email</string>
     <string name="save_park_location">Save Parking Location</string>
     <string name="speed_limit">SPEED LIMIT</string>
-    <string name="speed_limit_start_value">15</string>
+    <string name="speed_limit_start_value">25</string>
     <string name="current_speed_start_value">0</string>
     <string name="current_speed">CURRENT SPEED</string>
     <string name="silence_button">Silence Button</string>

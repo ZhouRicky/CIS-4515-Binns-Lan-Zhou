@@ -40,9 +40,7 @@ public class LocationService extends Service {
                     Intent intent = new Intent("driverMood");
                     intent.putExtra(Constant.LATITUDE, location.getLatitude());
                     intent.putExtra(Constant.LONGITUDE, location.getLongitude());
-                    if(location.getSpeed() != 0) { //TODO: check here for speed changes
-                        intent.putExtra(Constant.CURRENTSPEED, location.getSpeed());
-                    }
+                    intent.putExtra(Constant.CURRENTSPEED, location.getSpeed());
                     LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(context);
                     localBroadcastManager.sendBroadcast(intent);
                 } catch(Exception e) {
