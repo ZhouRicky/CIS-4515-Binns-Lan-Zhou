@@ -462,9 +462,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         speedLimit = getSpeedLimit();
                     }
                 }
-
-                speedLimitValue.setText(String.valueOf(speedLimit));
             }
+            speedLimitValue.setText(String.valueOf(speedLimit));
 
             // check if we need to send a warning to driver - see if they are approaching the speed limit
             checkWarning(currentSpeed, speedLimit);
@@ -529,12 +528,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if((speedLimit - currentSpeed) == 0) {
             color = Color.MAGENTA;
             playedSpeech = 2;
-        } else if((currentSpeed - speedLimit) >= 5) {
+        } else if((currentSpeed - speedLimit) > 0) {
             color = Color.RED;
             playedSpeech = 3;
         } else if((speedLimit - currentSpeed) >= 5) {
             color = Color.WHITE;
             playedSpeech = 0;
+        } else {
+            color = Color.WHITE;
+            playedSpeech = -1;
         }
     }
 
@@ -557,6 +559,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             case 0:
                 String noWarning = "You are well below the speed limit";
                 textToSpeech.speak(noWarning, TextToSpeech.QUEUE_ADD, null, null);
+                break;
+            default:
                 break;
         }
     }

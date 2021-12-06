@@ -73,24 +73,32 @@ public class MainActivityTest {
     public void testWarningColorChange() {
         speedLimit = 15;
         currentSpeed = 9;
-        boolean checkedYellow = false, checkedMagenta = false, checkedRed = false, checkedWhite = false;
+        boolean checkedYellow = false, checkedMagenta = false, checkedRed = false, checkedWhite = false, checkedWhiteAgain = false;
 
-        while(!checkedWhite || !checkedYellow || !checkedMagenta || !checkedRed) {
+        while(!checkedYellow || !checkedMagenta || !checkedRed || !checkedWhite || !checkedWhiteAgain) {
             mainActivity.checkWarning(currentSpeed, speedLimit);
+            System.out.println(currentSpeed);
             if ((speedLimit - currentSpeed) <= 3 && (speedLimit - currentSpeed) > 0) {
                 assertEquals("Should be yellow", Color.YELLOW, mainActivity.color);
                 checkedYellow = true;
             } else if ((speedLimit - currentSpeed) == 0) {
                 assertEquals("Should be magenta", Color.MAGENTA, mainActivity.color);
                 checkedMagenta = true;
-            } else if ((currentSpeed - speedLimit) >= 5) {
+            } else if ((currentSpeed - speedLimit) >= 0) {
                 assertEquals("Should be red", Color.RED, mainActivity.color);
                 checkedRed = true;
             } else if ((speedLimit - currentSpeed) >= 5) {
                 assertEquals("Should be white", Color.WHITE, mainActivity.color);
                 checkedWhite = true;
+            } else { // This case should only happen if currentSpeed is exactly 4 less than speedLimit
+                assertEquals("Should also be white", Color.WHITE, mainActivity.color);
+                checkedWhiteAgain = true;
             }
-            currentSpeed += 3;
+            if(checkedYellow && checkedMagenta && checkedRed && checkedWhite) {
+                currentSpeed = 11;
+            } else {
+                currentSpeed += 3;
+            }
         }
     }
 
