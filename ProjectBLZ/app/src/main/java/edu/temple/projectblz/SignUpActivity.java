@@ -101,7 +101,7 @@ public class SignUpActivity extends AppCompatActivity {
                         } else if(jsonObject.getString("status").equals("error")) {
                             Log.d("JSON", "error: " + jsonObject.getString("message"));
                         }
-                    } catch (JSONException e) {
+                    } catch(JSONException e) {
                         e.printStackTrace();
                         Log.d("SignUpActivity", String.valueOf(e));
                     }

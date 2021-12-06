@@ -101,7 +101,7 @@ public class ParkingAdapter extends RecyclerView.Adapter<ParkingAdapter.MyViewHo
                 // call showAddress to convert the lat lon to geolocations, using geocoder
                 try {
                     addressReturned = showAddress(latitude, longitude);
-                } catch (IOException e) {
+                } catch(IOException e) {
                     e.printStackTrace();
                 }
 
@@ -133,7 +133,7 @@ public class ParkingAdapter extends RecyclerView.Adapter<ParkingAdapter.MyViewHo
                             } else if(jsonObject.getString("status").equals("error")) {
                                 Log.d("JSON", "error: " + jsonObject.getString("message"));
                             }
-                        } catch (JSONException e) {
+                        } catch(JSONException e) {
                             e.printStackTrace();
                             Log.d("ParkingAdapter", String.valueOf(e));
                         }
@@ -165,7 +165,7 @@ public class ParkingAdapter extends RecyclerView.Adapter<ParkingAdapter.MyViewHo
         try {
             // Here 1 represent max location result to returned, by documents it recommended 1 to 5
             addresses = geocoder.getFromLocation(lat, lon, 1);
-        } catch (IOException e) {
+        } catch(IOException e) {
             e.printStackTrace();
         }
 

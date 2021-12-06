@@ -180,7 +180,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         map.setMultiTouchControls(true);
         mapController = map.getController();
 
-        if (myLocation != null) {
+        if(myLocation != null) {
             startPoint = new GeoPoint(myLocation.getLatitude(), myLocation.getLongitude());
             mapController.setCenter(startPoint);
             mapController.setZoom(19.5);
@@ -193,7 +193,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         try {
             startMarker.setIcon(drawable);
             startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-        } catch (Exception e) {
+        } catch(Exception e) {
             e.printStackTrace();
         }
         map.getOverlays().add(startMarker);
@@ -208,10 +208,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
 
         textToSpeech = new TextToSpeech(getApplicationContext(), status -> {
-            if (status == TextToSpeech.SUCCESS) {
+            if(status == TextToSpeech.SUCCESS) {
                 int result = textToSpeech.setLanguage(Locale.ENGLISH);
 
-                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                if(result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                     Log.d("TextToSpeech", "Language not supported");
                 }
             } else {
@@ -244,7 +244,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     protected void onDestroy() {
-        if (textToSpeech != null) {
+        if(textToSpeech != null) {
             textToSpeech.stop();
             textToSpeech.shutdown();
         }
@@ -275,12 +275,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     @SuppressLint("MissingPermission")
                     @Override
                     public void onPermissionsChecked(MultiplePermissionsReport multiplePermissionsReport) {
-                        if (multiplePermissionsReport.areAllPermissionsGranted()) {
+                        if(multiplePermissionsReport.areAllPermissionsGranted()) {
                             sharedPrefs.setIsPermissionGranted(true);
                             myLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
                         }
 
-                        if (multiplePermissionsReport.getDeniedPermissionResponses().size() > 0) {
+                        if(multiplePermissionsReport.getDeniedPermissionResponses().size() > 0) {
                             sharedPrefs.clearIsPermissionGranted();
                             Toast.makeText(MainActivity.this, "All permissions are required to continue", Toast.LENGTH_SHORT).show();
                             Intent intent = new Intent();
@@ -298,7 +298,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }).check();
 
         // checks for WRITE_SETTINGS permission
-        if (!Settings.System.canWrite(this)) {
+        if(!Settings.System.canWrite(this)) {
             Toast.makeText(this, "Modify system settings must be allowed", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent();
             intent.setAction(Settings.ACTION_MANAGE_WRITE_SETTINGS);
@@ -315,15 +315,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 response -> {
                     try {
                         JSONObject jsonObject = new JSONObject(response);
-                        if (jsonObject.getString("status").equals("success")) {
+                        if(jsonObject.getString("status").equals("success")) {
                             sharedPrefs.setLatParked(String.valueOf(lat));
                             sharedPrefs.setLonParked(String.valueOf(lon));
                             Toast.makeText(this, "Location saved", Toast.LENGTH_SHORT).show();
                             Log.d("JSON", "success: " + jsonObject.getString("message"));
-                        } else if (jsonObject.getString("status").equals("error")) {
+                        } else if(jsonObject.getString("status").equals("error")) {
                             Log.d("JSON", "error: " + jsonObject.getString("message"));
                         }
-                    } catch (JSONException e) {
+                    } catch(JSONException e) {
                         e.printStackTrace();
                         Log.d("MainActivity", String.valueOf(e));
                     }
@@ -350,7 +350,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 response -> {
                     try {
                         JSONObject jsonObject = new JSONObject(response);
-                        if (jsonObject.getString("status").equals("success")) {
+                        if(jsonObject.getString("status").equals("success")) {
                             JSONArray jsonArray = jsonObject.getJSONArray("data");
                             getArraylist(jsonArray);
 
@@ -359,10 +359,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             newIntent.putExtra(Constant.LOCATIONLIST, locationList);
                             startActivity(newIntent);
                             finish();
-                        } else if (jsonObject.getString("status").equals("error")) {
+                        } else if(jsonObject.getString("status").equals("error")) {
                             Log.d("JSON", "error: " + jsonObject.getString("message"));
                         }
-                    } catch (JSONException e) {
+                    } catch(JSONException e) {
                         e.printStackTrace();
                         Log.d("MainActivity", String.valueOf(e));
                     }
@@ -399,7 +399,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     // start service
     private void getStartService() {
         Intent intent = new Intent(this, LocationService.class);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(intent);
         } else {
             startService(intent);
@@ -434,11 +434,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             lat = intent.getDoubleExtra(Constant.LATITUDE, 0);
             lon = intent.getDoubleExtra(Constant.LONGITUDE, 0);
 
-            Log.d("speedLimitCount", String.valueOf(speedLimitCount));
             // set a flag to ensure starting speed, and get current speed from location services
             if(speedFlag) {
                 int tempSpeed = (int) intent.getFloatExtra(Constant.CURRENTSPEED, 0);
-                if (tempSpeed != 0) {
+                if(tempSpeed != 0) {
                     currentSpeed = tempSpeed;
                 }
             } else {
@@ -473,7 +472,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             // playedSpeech is a value assigned to a string that has just been played, check played ensures we don't give the same warning back to back
             if(!silenceFlag) { //Silence flag is used to check whether or not we should use text too speech
-                if (playedSpeech != checkPlayedSpeech) {
+                if(playedSpeech != checkPlayedSpeech) {
                     getSpeech(playedSpeech);
                 }
             }
@@ -524,16 +523,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     // this function gives the speed warning
     public void checkWarning(int currentSpeed, int speedLimit) {
-        if ((speedLimit - currentSpeed) <= 3 && (speedLimit - currentSpeed) > 0) {
+        if((speedLimit - currentSpeed) <= 3 && (speedLimit - currentSpeed) > 0) {
             color = Color.YELLOW;
             playedSpeech = 1;
-        } else if ((speedLimit - currentSpeed) == 0) {
+        } else if((speedLimit - currentSpeed) == 0) {
             color = Color.MAGENTA;
             playedSpeech = 2;
-        } else if ((currentSpeed - speedLimit) >= 5) {
+        } else if((currentSpeed - speedLimit) >= 5) {
             color = Color.RED;
             playedSpeech = 3;
-        } else if ((speedLimit - currentSpeed) >= 5) {
+        } else if((speedLimit - currentSpeed) >= 5) {
             color = Color.WHITE;
             playedSpeech = 0;
         }
@@ -568,7 +567,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      */
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == R.id.shareButton) {
+        if(item.getItemId() == R.id.shareButton) {
             Intent sendIntent = new Intent();
             sendIntent.setAction(Intent.ACTION_SEND);
             sendIntent.putExtra(Intent.EXTRA_TEXT, showAddress(lat, lon));
@@ -577,7 +576,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Intent shareIntent = Intent.createChooser(sendIntent, null);
             startActivity(shareIntent);
         }
-        if (toggle.onOptionsItemSelected(item)) {
+        if(toggle.onOptionsItemSelected(item)) {
             return true;
         }
 
@@ -596,7 +595,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     // for navigation drawer
     @Override
     public void onBackPressed() {
-        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+        if(drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START);
         } else {
             super.onBackPressed();
@@ -608,9 +607,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @SuppressLint("NonConstantResourceId")
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()) {
+        switch(item.getItemId()) {
             case R.id.nav_last_parked:
-                if (sharedPrefs.getLatParked() != null && sharedPrefs.getLonParked() != null &&
+                if(sharedPrefs.getLatParked() != null && sharedPrefs.getLonParked() != null &&
                         !sharedPrefs.getLatParked().equals(Constant.SHARED_PREFS_DEFAULT_STRING) &&
                         !sharedPrefs.getLonParked().equals(Constant.SHARED_PREFS_DEFAULT_STRING)) {
                     getLastAddress();
@@ -660,12 +659,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         try {
             // Here 1 represent max location result to returned, by documents it recommended 1 to 5
             addresses = geocoder.getFromLocation(lat, lon, 1);
-        } catch (IOException e) {
+        } catch(IOException e) {
             e.printStackTrace();
         }
 
         // double check if address is empty
-        if (addresses == null || addresses.size() == 0) {
+        if(addresses == null || addresses.size() == 0) {
             Toast.makeText(this, "Sorry, no address found ", Toast.LENGTH_SHORT).show();
         } else {
             // If any additional address line present than only 1, check with max available address lines by getMaxAddressLineIndex()
@@ -677,7 +676,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
-        if (sensorEvent.sensor.getType() == Sensor.TYPE_LIGHT) {
+        if(sensorEvent.sensor.getType() == Sensor.TYPE_LIGHT) {
             setBrightness((int) sensorEvent.values[0]);
         }
     }
@@ -685,9 +684,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void setBrightness(int brightness) {
         // TODO: Implement Algorithm for brightness control
-        if (brightness < Constant.Brightness_Zero) {
+        if(brightness < Constant.Brightness_Zero) {
             brightness = Constant.Brightness_Zero;
-        } else if (brightness > Constant.Brightness_Max) {
+        } else if(brightness > Constant.Brightness_Max) {
             brightness = Constant.Brightness_Max;
         }
         ContentResolver contentResolver = getApplicationContext().getContentResolver();
@@ -699,7 +698,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
 
-    // TODO: try to incorporate everything after this line
     public void getMaxSpeed(String latitude, String longitude, String maxLat, String maxLon) {
         String RequestURL = Constant.OverpassAPIPrefix + longitude + "," + latitude + "," + maxLon + "," + maxLat + "]";
         StringRequest stringRequest = new StringRequest(Request.Method.POST, RequestURL,
